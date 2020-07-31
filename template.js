@@ -74,7 +74,7 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     const stringHtml = await ejs.renderFile("./templates/msg-4.ejs", {
       url: urlLocal,
     });
-    const dimensions = sizeOf(fullExportPath + "./" + STICKER_DIR + "/" + fileName);
+    const dimensions = sizeOf(fullExportPath + "/" + STICKER_DIR + "/" + fileName);
 
     return stringHtml
       .replace("fileNameValue", fileName)

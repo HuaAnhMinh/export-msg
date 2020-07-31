@@ -4,6 +4,7 @@
   "description": "Từ data message dạng JSON tạo ra file HTML & CSS & JS để coi được trên browser. User có thể đóng gói lại và mở coi ở bất kì máy tính nào (có và không có internet)",
   "main": "index.js",
   "scripts": {
+    "start": "node index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

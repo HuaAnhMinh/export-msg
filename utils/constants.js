@@ -1,5 +1,5 @@
-const ROOT_EXPORT_PATH = "/Study_test/Zalo_Desktop"; // Edit here
-const ROOT_FOLDER_NAME = "/MessageExport/";
+// const ROOT_EXPORT_PATH = "/Study_test/Zalo_Desktop"; // Edit here
+const ROOT_FOLDER_NAME = "MessageExport";
 const JS_DIR = "js";
 const IMAGE_DIR = "images";
 const CSS_DIR = "css";
@@ -141,7 +141,7 @@ const MAX_TEXT_LENGTH = 70;
 const TITLE_GROUP_CHAT = "Chat nhóm";
 
 module.exports = {
-  ROOT_EXPORT_PATH,
+  // ROOT_EXPORT_PATH,
   ROOT_FOLDER_NAME,
   JS_DIR,
   IMAGE_DIR,
