@@ -1,14 +1,13 @@
-<div class="media_wrap clearfix">
-  <a href="<%= `${url}` %>" target="_blank">
+<a href="<%= `${url}` %>" target="_blank">
+  <div class="media_wrap clearfix">
     <div style="
     width: 130px;
     height: 130px;
-    background-image: url('./dirValue/fileNameValue');
+    background-image: url('./<%=dirValue%>/<%=fileName%>');
     background-position: 0px 0px;
     background-repeat: repeat-x;
-    background-size: widthValue heightValue;
-  " onmouseover="onMouseOver(this)">
+    background-size: <%=width%> <%=height%>;
+  " onmouseover="onMouseOver(this)" id="<%=msgId%>">
     </div>
-  </a>
-
-</div>
+  </div>
+</a>

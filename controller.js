@@ -19,9 +19,9 @@ const initialContent = async () => {
     await ejs.renderFile("./templates/common/initial.ejs")
   ).replace("WHO", header);
 
-  writeToFile(htmlString, "/index.html");
-  writeToFile(INITIAL_CSS, CSS_DIR + "/style.css");
-  writeToFile(onMouseOver.toString(), JS_DIR + "/script.js");
+  writeToFile(htmlString, "", "index.html");
+  writeToFile(INITIAL_CSS, CSS_DIR, "style.css");
+  writeToFile("var displayList = {};" + onMouseOver.toString(), JS_DIR, "script.js");
 };
 // Append html, css file
 const AppendContent = async () => {
@@ -46,15 +46,16 @@ const AppendContent = async () => {
           shortenName,
           name,
           time: convertTimeFormat(localDttm),
+          color
         })
-      ).replace("colorValue", color);
+      )
       const wrapEndMsg = await ejs.renderFile("./templates/common/end-msg.ejs");
 
       appendHtml += wrapInitMsg + htmlString + wrapEndMsg;
     }
   }
   appendHtml += await ejs.renderFile("./templates/common/end.ejs");
-  writeToFile(appendHtml, "/index.html");
+  writeToFile(appendHtml, "", "/index.html");
 };
 
 exports.MainHandler = async () => {

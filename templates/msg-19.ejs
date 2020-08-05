@@ -1,10 +1,11 @@
-<div class="media_wrap clearfix arrangedFlex">
-  <img src="<%= `${dir}/${fileName}` %>" width="300px" height="200px" style="width: 100px ;height: 50px;;"></img>
-  <div class="infor">
-    <a href="<%= `${url}` %>" target="_blank" class="title">
-      <div><%= title %></div>
-    </a>
-    <div class="description"><%= size %></div>
+<a href="<%= `${url}` %>" target="_blank" class="title">
+  <div class="media_wrap clearfix arrangedFlex">
+    <div class="<%=wrapImgClass%>">
+      <img src="<%= `${dir}/${fileName}` %>" class="<%=imgClass%>"></img>
+    </div>
+    <div class="infor">
+      <div class="title"><%= title %></div>
+      <div class="description"><%= size %></div>
+    </div>
   </div>
-
-</div>
+</a>

@@ -1,9 +1,9 @@
-<div class="media_wrap clearfix arrangedFlex">
-    <a href="<%= `${url}` %>" target="_blank">
-        <img src="<%= `${dir}/${fileName}` %>" width="300" height="200"></img>
-    </a>
-    <div class="infor">
-        <div class="title"><%= fileName %></div>
-        <div class="description"><%= size %></div>
+<a href="<%= `${url}` %>" target="_blank">
+    <div class="media_wrap clearfix arrangedFlex">
+        <img src="<%= `${dir}/${fileName}` %>" class="thumb"></img>
+        <div class="infor">
+            <div class="title"><%= fileName %></div>
+            <div class="description"><%= size %></div>
+        </div>
     </div>
-</div>
+</a>

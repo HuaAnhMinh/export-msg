@@ -25,17 +25,15 @@ const {
 
 
 createRootExportPath = (path) => {
-  const newPath = path;
-
-  rootExportPath = newPath;
-  return fs.mkdirSync(newPath, { recursive: true });
+  rootExportPath = path;
+  return fs.mkdirSync(path, { recursive: true });
 };
 exports.createRootExportPath = createRootExportPath;
 
 exports.createExportDataDir = () => {
   const currentTime = new Date();
   const day = currentTime.getDate();
-  const month = currentTime.getMonth() - 1;
+  const month = currentTime.getMonth() + 1;
   const hour = currentTime.getHours();
   const minute = currentTime.getMinutes();
   const second = currentTime.getSeconds();
@@ -54,8 +52,9 @@ exports.createExportDataDir = () => {
   fs.mkdirSync(path.join(fullExportPath, FILE_DIR));
 };
 
-exports.writeToFile = (content, subPath) => {
-  let writeStream = fs.createWriteStream(path.join(fullExportPath, subPath), {
+exports.writeToFile = (content, subDir, file) => {
+  const url = subDir ? path.join(fullExportPath, subDir, file) : path.join(fullExportPath, file)
+  let writeStream = fs.createWriteStream(url, {
     flags: "a",
   });
 

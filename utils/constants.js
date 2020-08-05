@@ -1,4 +1,4 @@
-// const ROOT_EXPORT_PATH = "/Study_test/Zalo_Desktop"; // Edit here
+const ROOT_EXPORT_PATH = "/Zalo_Desktop"; // Edit here
 const ROOT_FOLDER_NAME = "MessageExport";
 const JS_DIR = "js";
 const IMAGE_DIR = "images";
@@ -21,6 +21,9 @@ const INITIAL_CSS = `.container {
   body{
     margin:0px;
   }
+  div{
+    font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
+  }
   a {
     text-decoration: none;
   } 
@@ -35,7 +38,7 @@ const INITIAL_CSS = `.container {
   }
   .page_body{
     padding-top: 64px;
-    width: 520px;
+    width:600px;
     margin: 0 auto;
   }
   .history{
@@ -62,6 +65,8 @@ const INITIAL_CSS = `.container {
   }
   .userpic4 {
     background-color: #4f9cd9;
+    width:34px;
+    height:34px;
   }
   .userpic {
     display: block;
@@ -76,19 +81,20 @@ const INITIAL_CSS = `.container {
     user-select: none;
   }
   .default .body {
-    margin-left: 60px;
+    margin-left: 50px;
   }
   .pull_right {
     float: right;
   }
   .details {
-    color: #70777b;
-    font-size: 12px;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 13px;
   }
   .default .from_name {
-    color: #3892db;
-    font-weight: 700;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
     padding-bottom: 5px;
+    cursor: pointer;
   }
   .clearfix:after {
     content: " ";
@@ -97,32 +103,61 @@ const INITIAL_CSS = `.container {
     height: 0;
     clear: both;
   }
+  .default .text{
+    font-size:15px;
+  }
   .default .media_wrap {
     padding-bottom: 5px;
   }
-  img{
+  .wrap_icon_file{
+    width: 90px;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+  }
+ 
+  .media_wrap .thumb {
+    object-fit: none;
+    object-position: center;
+    height: 90px;
+    width: 90px;
+  }
+
+  .media_wrap .icon_file{
+    height: 90px;
+  }
+  .media_wrap .gif{
     max-width:150px;
-    max-height:100px
+    max-height:100px;
+  }
+  .media_wrap .icon_location{
+    wwidth: 90px;
+    height: 90px;
   }
   .arrangedFlex{
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0 10px;
   }
   .arrangedFlex .infor{
     display: flex;
     flex-direction: column;
-    align-items: center;
   }
   .arrangedFlex .infor > * {
-    padding: 10px 10px 
+    padding: 5px 10px 
   }
   .arrangedFlex .infor .title{
-    font-size: 15px
+    font-size: 14px;
+    font-weight:500;
+    color: rgba(0, 0, 0, 0.6);
   }
   .description{
-    font-size: 12px
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
+  }
+  .title{
+    font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
   }
   `;
 const STICKER_DOWNLOAD_URL =
@@ -131,7 +166,7 @@ const EXTENSION_LIST = ["png", "jpeg", "pdf", "gif"];
 const SIZE_UNIT_LIST = ["Bytes", "Kb", "Mb", "Gb"];
 const SIZE_UNIT_CONVERT = 1024;
 const LOCATION_ICON =
-  "https://image.freepik.com/free-vector/location_53876-25530.jpg";
+  "https://i0.wp.com/nmc-mic.ca/wp-content/uploads/2015/12/map-location-placeholder-pin-on-map-flat-icon.png?fit=256%2C256&ssl=1";
 const GOOGLE_MAP = "https://maps.google.com/?q=latValue,loValue";
 const ICON_DOWNLOAD = "https://zalo-chat-static.zadn.vn/v1/icon-typeValue.svg";
 const EXTENSION_POPULAR = ["pdf", "word", "txt", "excel", "mp3", "mp4"];
@@ -141,7 +176,7 @@ const MAX_TEXT_LENGTH = 70;
 const TITLE_GROUP_CHAT = "Chat nhóm";
 
 module.exports = {
-  // ROOT_EXPORT_PATH,
+  ROOT_EXPORT_PATH,
   ROOT_FOLDER_NAME,
   JS_DIR,
   IMAGE_DIR,
