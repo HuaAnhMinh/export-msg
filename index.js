@@ -9,16 +9,9 @@ global.downloadedResource = {};
 const outputPath = './output';
 
 const main = () => {
-  require('dns').lookup('google.com', function (err) {
-    if (err && err.code == "ENOTFOUND") {
-      console.log("Không có kết nối mạng");
-      return;
-    } else {
-      createRootExportPath(outputPath);
-      createExportDataDir();
-      MainHandler();
-    }
-  })
+  createRootExportPath(outputPath);
+  createExportDataDir();
+  MainHandler();
 };
 
 main();
