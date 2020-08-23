@@ -9,6 +9,9 @@ global.downloadedResource = {};
 const outputPath = './output';
 
 const main = () => {
+  const start = (new Date()).valueOf();
+  console.log(start);
+  
   createRootExportPath(outputPath);
   createExportDataDir();
   MainHandler();

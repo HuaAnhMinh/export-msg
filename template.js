@@ -36,14 +36,45 @@ const savePhoto = async (msgType, url, fileName) => {
   };
 };
 
+const files = {};
+const saveFile = async (msgType, url, fileName, thumb, title) => {
+  if (files.hasOwnProperty(url)) {
+    return;
+  }
+
+  const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
+
+  let fileNameImg;
+  
+  if (thumb) {
+    fileName = detectFileName(thumb);
+    console.log(fileName);
+    const { updatedFileName } = await downloadExternalResource({ msgType: 6, url: thumb, fileName });
+    fileNameImg = updatedFileName;
+  } else {
+    const { extension, url } = determinateThumb(title);
+    fileNameImg = `${extension}.svg`;
+    const { updatedFileName } = await downloadExternalResource({ msgType: 6, url, fileName: fileNameImg });
+    fileNameImg = updatedFileName;
+  }
+
+  files[url] = {
+    fileNameFile: updatedFileName,
+    size,
+    urlLocal: path.join(FILE_DIR, updatedFileName),
+    dir: IMAGE_DIR,
+    fileNameImg
+  };
+};
+
 const exportResourcesToFile = () => {
   const fs = require('fs');
 
-  fs.writeFileSync(path.join(fullExportPath, '/resources/photos.js'), 'const photosResource = ' + JSON.stringify(photos), (error) => {
-    if (error) {
-      console.log(error);
-    }
-  });
+  fs.writeFileSync(path.join(fullExportPath, '/resources/photos.js'), 'const photosResource = ' + JSON.stringify(photos));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/files.js'), 'const filesResource = ' + JSON.stringify(files));
+
+  const end = (new Date()).valueOf();
+  console.log(end);
 };
 
 process.on('exit', exportResourcesToFile);
@@ -171,37 +202,19 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   else if (msgType === 19) {
     const { title = "", href = "", thumb = "" } = message;
     let fileNameFile = title;
-    let fileNameImg = "";
 
-    const { updatedFileName, size } = await downloadExternalResource({
-      msgType,
-      url: href,
-      fileName: fileNameFile,
-    });
-    fileNameFile = updatedFileName;
-
-    if (thumb) {
-      const fileName = detectFileName(thumb);
-      const { updatedFileName } = await downloadExternalResource({
-        msgType: 6,
-        url: thumb,
-        fileName,
-      });
-      fileNameImg = updatedFileName;
-    } else {
-      const { extension, url } = determinateThumb(title);
-      fileNameImg = `${extension}.svg`;
-      const { updatedFileName } = await downloadExternalResource({ msgType: 6, url, fileName: fileNameImg });
-      fileNameImg = updatedFileName;
-    }
-    const urlLocal = path.join(FILE_DIR, fileNameFile);
+    saveFile(msgType, href, fileNameFile, thumb, title);
 
     return ejs.renderFile("./templates/msg-19.ejs", {
-      url: urlLocal,
+      // url: urlLocal,
+      // title,
+      // size,
+      // fileName: fileNameImg,
+      // dir: IMAGE_DIR,
+      // wrapImgClass: thumb ? '' : 'wrap_icon_file',
+      // imgClass: thumb ? 'thumb' : 'icon_file'
+      url: href,
       title,
-      size,
-      fileName: fileNameImg,
-      dir: IMAGE_DIR,
       wrapImgClass: thumb ? '' : 'wrap_icon_file',
       imgClass: thumb ? 'thumb' : 'icon_file'
     });

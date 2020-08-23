@@ -27,7 +27,7 @@ function onMouseOver(node) {
   img.src = cssText.substring(startIndex, endIndex);
 }
 
-function loadPhotoResource() {
+async function loadPhotosResource() {
   for (const i in photosResource) {
     const aTags = document.getElementsByClassName(`ZA-a-${i}`);
     for (const aTag of aTags) {
@@ -46,17 +46,38 @@ function loadPhotoResource() {
 
     const sizeDivTags = document.getElementsByClassName(`ZA-div-size-${i}`);
     for (const sizeDivTag of sizeDivTags) {
-      sizeDivTag.textContent = photosResource[i].size
+      sizeDivTag.textContent = photosResource[i].size;
+    }
+  }
+}
+
+async function loadFilesResource() {
+  for (const i in filesResource) {
+    const aTags = document.getElementsByClassName(`ZA-a-${i}`);
+    for (const aTag of aTags) {
+      aTag.href = filesResource[i].urlLocal
+    }
+
+    const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
+    for (const imgTag of imgTags) {
+      imgTag.src = `${filesResource[i].dir}/${filesResource[i].fileNameImg}`;
+    }
+
+    const sizeDivTags = document.getElementsByClassName(`ZA-div-size-${i}`);
+    for (const sizeDivTag of sizeDivTags) {
+      sizeDivTag.textContent = filesResource[i].size;
     }
   }
 }
 
 function loadResources() {
-  loadPhotoResource();
+  loadPhotosResource();
+  loadFilesResource();
 }
 
 module.exports = {
   onMouseOver,
   loadResources,
-  loadPhotoResource
+  loadPhotosResource,
+  loadFilesResource
 };
