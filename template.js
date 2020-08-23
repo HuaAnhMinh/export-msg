@@ -18,6 +18,36 @@ const {
   FILE_DIR,
 } = require("./utils/constants");
 
+// msgType === 2
+const photos = {};
+const savePhoto = async (msgType, url, fileName) => {
+  if (photos.hasOwnProperty(url)) {
+    return;
+  }
+
+  const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
+
+  const urlLocal = path.join(PHOTO_DIR, updatedFileName);
+
+  photos[url] = {
+    urlLocal,
+    fileName: updatedFileName,
+    size
+  };
+};
+
+const exportResourcesToFile = () => {
+  const fs = require('fs');
+
+  fs.writeFileSync(path.join(fullExportPath, '/resources/photos.js'), 'const photosResource = ' + JSON.stringify(photos), (error) => {
+    if (error) {
+      console.log(error);
+    }
+  });
+};
+
+process.on('exit', exportResourcesToFile);
+
 exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   // Text type
   if (msgType === 1) {
@@ -29,16 +59,11 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   else if (msgType === 2) {
     const { normalUrl: url = "", title = "" } = message;
     let fileName = detectFileName(url);
-    const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
-    fileName = updatedFileName;
-    const urlLocal = path.join(PHOTO_DIR, fileName);
+
+    savePhoto(msgType, url, fileName);
 
     return ejs.renderFile("./templates/msg-2.ejs", {
-      url: urlLocal,
-      fileName,
-      title,
-      size,
-      dir: PHOTO_DIR
+      url
     });
   }
   // Mp3 type

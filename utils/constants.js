@@ -9,6 +9,7 @@ const STICKER_DIR = "stickers";
 const GIF_DIR = "gifs";
 const MP4_DIR = "mp4s";
 const FILE_DIR = "files";
+const RESOURCES = "resources";
 
 
 const INITIAL_CSS = `.container { 
@@ -200,4 +201,5 @@ module.exports = {
   SHORTEN_NAME,
   MAX_TEXT_LENGTH,
   TITLE_GROUP_CHAT,
+  RESOURCES
 };

@@ -27,6 +27,36 @@ function onMouseOver(node) {
   img.src = cssText.substring(startIndex, endIndex);
 }
 
+function loadPhotoResource() {
+  for (const i in photosResource) {
+    const aTags = document.getElementsByClassName(`ZA-a-${i}`);
+    for (const aTag of aTags) {
+      aTag.href = photosResource[i].urlLocal;
+    }
+
+    const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
+    for (const imgTag of imgTags) {
+      imgTag.src = photosResource[i].urlLocal;
+    }
+
+    const titleDivTags = document.getElementsByClassName(`ZA-div-title-${i}`);
+    for (const titleDivTag of titleDivTags) {
+      titleDivTag.textContent = photosResource[i].fileName;
+    }
+
+    const sizeDivTags = document.getElementsByClassName(`ZA-div-size-${i}`);
+    for (const sizeDivTag of sizeDivTags) {
+      sizeDivTag.textContent = photosResource[i].size
+    }
+  }
+}
+
+function loadResources() {
+  loadPhotoResource();
+}
+
 module.exports = {
   onMouseOver,
+  loadResources,
+  loadPhotoResource
 };

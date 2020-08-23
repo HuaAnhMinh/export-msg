@@ -20,7 +20,8 @@ const {
   MP4_DIR,
   FILE_DIR,
   CSS_DIR,
-  JS_DIR
+  JS_DIR,
+  RESOURCES
 } = require("./constants");
 
 
@@ -50,6 +51,7 @@ exports.createExportDataDir = () => {
   fs.mkdirSync(path.join(fullExportPath, GIF_DIR));
   fs.mkdirSync(path.join(fullExportPath, MP4_DIR));
   fs.mkdirSync(path.join(fullExportPath, FILE_DIR));
+  fs.mkdirSync(path.join(fullExportPath, RESOURCES));
 };
 
 exports.writeToFile = (content, subDir, file) => {
