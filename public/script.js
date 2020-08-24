@@ -90,10 +90,25 @@ async function loadStickersResource() {
   }
 }
 
+async function loadGifsResource() {
+  for (const i in gifsResource) {
+    const aTags = document.getElementsByClassName(`ZA-a-${i}`);
+    for (const aTag of aTags) {
+      aTag.href = gifsResource[i].urlLocal;
+    }
+
+    const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
+    for (const imgTag of imgTags) {
+      imgTag.src = `${gifsResource[i].dir}/${gifsResource[i].fileName}`;
+    }
+  }
+}
+
 function loadResources() {
   loadPhotosResource();
   loadFilesResource();
   loadStickersResource();
+  loadGifsResource();
 }
 
 module.exports = {
@@ -101,5 +116,6 @@ module.exports = {
   loadResources,
   loadPhotosResource,
   loadFilesResource,
-  loadStickersResource
+  loadStickersResource,
+  loadGifsResource
 };

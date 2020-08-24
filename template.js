@@ -84,7 +84,22 @@ const saveSticker = async (msgType, url, fileName) => {
     dirValue: STICKER_DIR,
     fileName: updatedFileName
   };
-}
+};
+
+const gifs = {};
+const saveGif = async (msgType, url, fileName) => {
+  if (gifs.hasOwnProperty(url)) {
+    return;
+  }
+
+  const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
+
+  gifs[url] = {
+    urlLocal: path.join(GIF_DIR, updatedFileName),
+    dir: GIF_DIR,
+    fileName: updatedFileName
+  };
+};
 
 const exportResourcesToFile = () => {
   const fs = require('fs');
@@ -92,6 +107,7 @@ const exportResourcesToFile = () => {
   fs.writeFileSync(path.join(fullExportPath, '/resources/photos.js'), 'const photosResource = ' + JSON.stringify(photos));
   fs.writeFileSync(path.join(fullExportPath, '/resources/files.js'), 'const filesResource = ' + JSON.stringify(files));
   fs.writeFileSync(path.join(fullExportPath, '/resources/stickers.js'), 'const stickersResource = ' + JSON.stringify(stickers));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/gifs.js'), 'const gifsResource = ' + JSON.stringify(gifs));
 
   const end = (new Date()).valueOf();
   console.log(end);
@@ -171,18 +187,10 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     const { normalUrl: url } = message;
     let fileName = `${msgId}.gif`;
 
-    const { updatedFileName } = await downloadExternalResource({
-      msgType,
-      url,
-      fileName,
-    });
-    fileName = updatedFileName;
-    const urlLocal = path.join(GIF_DIR, fileName);
+    saveGif(msgType, url, fileName);
 
     return ejs.renderFile("./templates/msg-7.ejs", {
-      fileName,
-      url: urlLocal,
-      dir: GIF_DIR
+      url
     });
   }
   // // Location type
@@ -215,13 +223,6 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     saveFile(msgType, href, fileNameFile, thumb, title);
 
     return ejs.renderFile("./templates/msg-19.ejs", {
-      // url: urlLocal,
-      // title,
-      // size,
-      // fileName: fileNameImg,
-      // dir: IMAGE_DIR,
-      // wrapImgClass: thumb ? '' : 'wrap_icon_file',
-      // imgClass: thumb ? 'thumb' : 'icon_file'
       url: href,
       title,
       wrapImgClass: thumb ? '' : 'wrap_icon_file',
