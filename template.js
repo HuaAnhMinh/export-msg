@@ -117,6 +117,21 @@ const saveLink = async (msgType, url, thumb, fileName) => {
 
 let hasDownloadedThumbForLocation = false;
 
+const mp3s = {};
+const saveMP3 = async (msgType, url, fileName) => {
+  if (mp3s.hasOwnProperty(url)) {
+    return;
+  }
+
+  const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
+
+  mp3s[url] = {
+    fileName: updatedFileName,
+    dir: MP3_DIR,
+    urlLocal: path.join(MP3_DIR, updatedFileName)
+  };
+};
+
 const exportResourcesToFile = () => {
   const fs = require('fs');
 
@@ -125,6 +140,7 @@ const exportResourcesToFile = () => {
   fs.writeFileSync(path.join(fullExportPath, '/resources/stickers.js'), 'const stickersResource = ' + JSON.stringify(stickers));
   fs.writeFileSync(path.join(fullExportPath, '/resources/gifs.js'), 'const gifsResource = ' + JSON.stringify(gifs));
   fs.writeFileSync(path.join(fullExportPath, '/resources/links.js'), 'const linksResource = ' + JSON.stringify(links));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/mp3s.js'), 'const mp3sResource = ' + JSON.stringify(mp3s));
 
   const end = (new Date()).valueOf();
   console.log(end);
@@ -155,14 +171,10 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     const { href: url } = message;
     let fileName = `${msgId}.amr`;
 
-    const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
-    fileName = updatedFileName;
-    const urlLocal = path.join(MP3_DIR, fileName);
+    saveMP3(msgType, url, fileName);
 
     return ejs.renderFile("./templates/msg-3.ejs", {
-      url: urlLocal,
-      fileName,
-      dir: MP3_DIR
+      url
     });
   }
   // Sticker type

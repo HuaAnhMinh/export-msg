@@ -113,12 +113,27 @@ async function loadLinksResource() {
   }
 }
 
+async function loadMP3sResource() {
+  for (const i in mp3sResource) {
+    const aTags = document.getElementsByClassName(`ZA-a-${i}`);
+    for (const aTag of aTags) {
+      aTag.href = mp3sResource[i].urlLocal;
+    }
+
+    const sourceTags = document.getElementsByClassName(`ZA-source-${i}`);
+    for (const sourceTag of sourceTags) {
+      sourceTag.src = `${mp3sResource[i].dir}/${mp3sResource[i].fileName}`;
+    }
+  }
+}
+
 function loadResources() {
   loadPhotosResource();
   loadFilesResource();
   loadStickersResource();
   loadGifsResource();
   loadLinksResource();
+  loadMP3sResource();
 }
 
 module.exports = {
@@ -128,5 +143,6 @@ module.exports = {
   loadFilesResource,
   loadStickersResource,
   loadGifsResource,
-  loadLinksResource
+  loadLinksResource,
+  loadMP3sResource
 };
