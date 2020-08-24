@@ -104,11 +104,21 @@ async function loadGifsResource() {
   }
 }
 
+async function loadLinksResource() {
+  for (const i in linksResource) {
+    const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
+    for (const imgTag of imgTags) {
+      imgTag.src = `${linksResource[i].dir}/${linksResource[i].fileName}`;
+    }
+  }
+}
+
 function loadResources() {
   loadPhotosResource();
   loadFilesResource();
   loadStickersResource();
   loadGifsResource();
+  loadLinksResource();
 }
 
 module.exports = {
@@ -117,5 +127,6 @@ module.exports = {
   loadPhotosResource,
   loadFilesResource,
   loadStickersResource,
-  loadGifsResource
+  loadGifsResource,
+  loadLinksResource
 };

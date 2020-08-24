@@ -6,7 +6,7 @@ const {
   determinateAvatar,
 } = require("./utils/utils");
 const { INITIAL_CSS, TITLE_GROUP_CHAT, CSS_DIR, JS_DIR } = require("./utils/constants");
-const { onMouseOver, loadResources, loadPhotosResource, loadFilesResource, loadStickersResource, loadGifsResource } = require("./public/script");
+const { onMouseOver, loadResources, loadPhotosResource, loadFilesResource, loadStickersResource, loadGifsResource, loadLinksResource } = require("./public/script");
 const { htmlTemplate } = require("./template");
 const messages = require("./messages.json");
 
@@ -24,6 +24,7 @@ const initialContent = async () => {
     loadFilesResource.toString() + '\n' +
     loadStickersResource.toString() + '\n' +
     loadGifsResource.toString() + '\n' +
+    loadLinksResource.toString() + '\n' +
     '(' + loadResources.toString() + ')();';
   writeToFile("var displayList = {};" + onMouseOver.toString() + loadResourcesTemplateStr, JS_DIR, "script.js");
 };

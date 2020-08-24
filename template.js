@@ -101,6 +101,20 @@ const saveGif = async (msgType, url, fileName) => {
   };
 };
 
+const links = {};
+const saveLink = async (msgType, url, thumb, fileName) => {
+  if (links.hasOwnProperty(url)) {
+    return;
+  }
+
+  const { updatedFileName } = await downloadExternalResource({ msgType, url: thumb, fileName });
+
+  links[url] = {
+    dir: IMAGE_DIR,
+    fileName: updatedFileName
+  };
+};
+
 let hasDownloadedThumbForLocation = false;
 
 const exportResourcesToFile = () => {
@@ -110,6 +124,7 @@ const exportResourcesToFile = () => {
   fs.writeFileSync(path.join(fullExportPath, '/resources/files.js'), 'const filesResource = ' + JSON.stringify(files));
   fs.writeFileSync(path.join(fullExportPath, '/resources/stickers.js'), 'const stickersResource = ' + JSON.stringify(stickers));
   fs.writeFileSync(path.join(fullExportPath, '/resources/gifs.js'), 'const gifsResource = ' + JSON.stringify(gifs));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/links.js'), 'const linksResource = ' + JSON.stringify(links));
 
   const end = (new Date()).valueOf();
   console.log(end);
@@ -169,19 +184,12 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     const { title = "", description = "", href = "", thumb = "", } = message;
     let fileName = `${msgId}.png`;
 
-    const { updatedFileName } = await downloadExternalResource({
-      msgType,
-      url: thumb,
-      fileName,
-    });
-    fileName = updatedFileName;
+    saveLink(msgType, href, thumb, fileName);
 
     return ejs.renderFile("./templates/msg-6.ejs", {
-      fileName,
       url: href,
       title: title,
-      description: description,
-      dir: IMAGE_DIR
+      description: description
     });
   }
   // Gif
