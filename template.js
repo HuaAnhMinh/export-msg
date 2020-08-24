@@ -101,6 +101,8 @@ const saveGif = async (msgType, url, fileName) => {
   };
 };
 
+let hasDownloadedThumbForLocation = false;
+
 const exportResourcesToFile = () => {
   const fs = require('fs');
 
@@ -199,12 +201,10 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     const iconName = "location.png";
     const urlGgMap = GOOGLE_MAP.replace("latValue", lat).replace("loValue", lo);
 
-    await downloadExternalResource({
-      msgType: 6,
-      url: LOCATION_ICON,
-      fileName: iconName,
-
-    });
+    if (!hasDownloadedThumbForLocation) {
+      downloadExternalResource({ msgType: 6, url: LOCATION_ICON, fileName: iconName });
+      hasDownloadedThumbForLocation = true;
+    }
 
     return ejs.renderFile("./templates/msg-17.ejs", {
       fileName: iconName,
