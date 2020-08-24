@@ -67,11 +67,31 @@ const saveFile = async (msgType, url, fileName, thumb, title) => {
   };
 };
 
+const stickers = {};
+const saveSticker = async (msgType, url, fileName) => {
+  if (stickers.hasOwnProperty(url)) {
+    return;
+  }
+
+  const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
+  const sizeOf = require('image-size');
+  const dimensions = sizeOf(path.join(fullExportPath, STICKER_DIR, updatedFileName));
+
+  stickers[url] = {
+    urlLocal: path.join(STICKER_DIR, updatedFileName),
+    width: dimensions.width,
+    height: dimensions.height,
+    dirValue: STICKER_DIR,
+    fileName: updatedFileName
+  };
+}
+
 const exportResourcesToFile = () => {
   const fs = require('fs');
 
   fs.writeFileSync(path.join(fullExportPath, '/resources/photos.js'), 'const photosResource = ' + JSON.stringify(photos));
   fs.writeFileSync(path.join(fullExportPath, '/resources/files.js'), 'const filesResource = ' + JSON.stringify(files));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/stickers.js'), 'const stickersResource = ' + JSON.stringify(stickers));
 
   const end = (new Date()).valueOf();
   console.log(end);
@@ -119,21 +139,10 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
     const url = STICKER_DOWNLOAD_URL.replace("IdValue", id);
     let fileName = `${msgId}.png`;
 
-    const { updatedFileName } = await downloadExternalResource({
-      msgType,
-      url,
-      fileName,
-    });
-    fileName = updatedFileName;
-    const urlLocal = path.join(STICKER_DIR, fileName);
+    saveSticker(msgType, url, fileName);
 
-    const dimensions = sizeOf(path.join(fullExportPath, STICKER_DIR, fileName));
     return stringHtml = await ejs.renderFile("./templates/msg-4.ejs", {
-      url: urlLocal,
-      fileName,
-      dirValue: STICKER_DIR,
-      width: dimensions.width,
-      height: dimensions.height,
+      url,
       msgId,
     });
   }

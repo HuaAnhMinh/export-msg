@@ -70,14 +70,36 @@ async function loadFilesResource() {
   }
 }
 
+async function loadStickersResource() {
+  for (const i in stickersResource) {
+    const aTags = document.getElementsByClassName(`ZA-a-${i}`);
+    for (const aTag of aTags) {
+      aTag.href = stickersResource[i].urlLocal;
+    }
+
+    const divTags = document.getElementsByClassName(`ZA-div-style-${i}`);
+    for (const divTag of divTags) {
+      divTag.style = `
+        width: 130px;
+        height: 130px;
+        background-image: url('./${stickersResource[i].dirValue}/${stickersResource[i].fileName}');
+        background-position: 0px 0px;
+        background-repeat: repeat-x;
+        background-size: ${stickersResource[i].width} ${stickersResource[i].height}`;
+    }
+  }
+}
+
 function loadResources() {
   loadPhotosResource();
   loadFilesResource();
+  loadStickersResource();
 }
 
 module.exports = {
   onMouseOver,
   loadResources,
   loadPhotosResource,
-  loadFilesResource
+  loadFilesResource,
+  loadStickersResource
 };
