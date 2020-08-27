@@ -32,33 +32,30 @@ const initialContent = async () => {
 
 // Append html, css file
 const AppendContent = async () => {
-  let appendHtml = "";
-
-  let htmlString, wrapInitMsg, wrapEndMsg;
+  let appendHtml = "", htmlString = "";
 
   for (let i = 0; i < messages.length; i++) {
     const { dName, localDttm, fromUid } = messages[i];
     htmlString = await htmlTemplate(messages[i]);
 
     if (isJoinedUserBefore(messages[i - 1], messages[i])) {
-      wrapInitMsg = await ejs.renderFile(
-        "./templates/common/initial-msg-joined.ejs",
-        { time: convertTimeFormat(localDttm) }
-      );  
+      appendHtml += await ejs.renderFile('./templates/common/msg-wrapper-joined.ejs', {
+        time: convertTimeFormat(localDttm),
+        msgBody: htmlString
+      });
     }
     else {
       const { shortenName, name, color } = determinateAvatar(fromUid, dName);
-      wrapInitMsg = await ejs.renderFile("./templates/common/initial-msg.ejs", {
+      appendHtml += await ejs.renderFile('./templates/common/msg-wrapper.ejs', {
         shortenName,
         name,
         time: convertTimeFormat(localDttm),
-        color
+        color,
+        msgBody: htmlString
       });
     }
-    
-    wrapEndMsg = await ejs.renderFile("./templates/common/end-msg.ejs");
-    appendHtml += wrapInitMsg + htmlString + wrapEndMsg;
   }
+
   appendHtml += await ejs.renderFile("./templates/common/end.ejs");
   writeToFile(appendHtml, "", "/index.html");
 };
