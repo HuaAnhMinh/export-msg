@@ -108,7 +108,6 @@ const saveLink = async (msgType, url, thumb, fileName) => {
   }
 
   const { updatedFileName } = await downloadExternalResource({ msgType, url: thumb, fileName });
-  console.log(updatedFileName);
 
   links[url] = {
     dir: IMAGE_DIR,
@@ -202,7 +201,7 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   // Link type
   else if (msgType === 6) {
     const { title = "", description = "", href = "", thumb = "", } = message;
-    let fileName = `${msgId}.png`;
+    let fileName = `${msgId}.jpg`;
 
     saveLink(msgType, href, thumb, fileName);
 
