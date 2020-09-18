@@ -108,6 +108,7 @@ const saveLink = async (msgType, url, thumb, fileName) => {
   }
 
   const { updatedFileName } = await downloadExternalResource({ msgType, url: thumb, fileName });
+  console.log(updatedFileName);
 
   links[url] = {
     dir: IMAGE_DIR,
@@ -151,9 +152,16 @@ process.on('exit', exportResourcesToFile);
 exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   // Text type
   if (msgType === 1) {
-    return ejs.renderFile("./templates/msg-1.ejs", {
-      message,
-    });
+    if (typeof message === 'string') {
+      return ejs.renderFile("./templates/msg-1.ejs", {
+        message,
+      });
+    }
+    else {
+      return ejs.renderFile('./templates/msg-1.ejs', {
+        message: message.title,
+      });
+    }
   }
   // Photo type
   else if (msgType === 2) {

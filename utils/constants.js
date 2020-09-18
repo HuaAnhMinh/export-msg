@@ -46,7 +46,7 @@ const INITIAL_CSS = `.container {
     padding: 16px 0;
   }
   .message {
-    margin: 0 -10px;
+    margin: 20px;
     transition: background-color 2s ease;
   }
   .default {
@@ -82,10 +82,11 @@ const INITIAL_CSS = `.container {
     user-select: none;
   }
   .default .body {
-    margin-left: 50px;
+    margin-left: 65px;
   }
   .pull_right {
     float: right;
+    margin-left: 15px;
   }
   .details {
     color: rgba(0, 0, 0, 0.5);
@@ -93,9 +94,10 @@ const INITIAL_CSS = `.container {
   }
   .default .from_name {
     color: rgba(0, 0, 0, 0.6);
-    font-size: 13px;
+    font-size: 14px;
     padding-bottom: 5px;
     cursor: pointer;
+    font-weight: bold;
   }
   .clearfix:after {
     content: " ";
@@ -118,10 +120,9 @@ const INITIAL_CSS = `.container {
   }
  
   .media_wrap .thumb {
-    object-fit: none;
     object-position: center;
-    height: 90px;
-    width: 90px;
+    max-width: 100%;
+    height: auto;
   }
 
   .media_wrap .icon_file{
