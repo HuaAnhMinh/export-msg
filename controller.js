@@ -1,4 +1,7 @@
 const ejs = require("ejs");
+const fs = require('fs');
+const path = require('path');
+
 const {
   writeToFile,
   isJoinedUserBefore,
@@ -6,7 +9,7 @@ const {
   determinateAvatar,
 } = require("./utils/utils");
 const { TITLE_GROUP_CHAT, CSS_DIR, JS_DIR } = require("./utils/constants");
-const { onMouseOver, loadResources, loadPhotosResource, loadFilesResource, loadStickersResource, loadGifsResource, loadLinksResource, loadMP3sResource } = require("./public/script");
+const { onMouseOver, loadResources, loadPhotosResource, loadFilesResource, loadStickersResource, loadGifsResource, loadLinksResource, loadMP3sResource, downloadedStatus } = require("./public/script");
 const { htmlTemplate } = require("./template");
 const messages = require("./messages.json");
 
@@ -19,6 +22,7 @@ const initialContent = async () => {
 
   writeToFile(htmlString, "", "index.html");
   const loadResourcesTemplateStr = '\n\n' +
+    'const downloadedStatus = { succeed: 0, failed: 1, };' + '\n' +
     loadPhotosResource.toString() + '\n' +
     loadFilesResource.toString() + '\n' +
     loadStickersResource.toString() + '\n' +
@@ -26,7 +30,10 @@ const initialContent = async () => {
     loadLinksResource.toString() + '\n' +
     loadMP3sResource.toString() + '\n' +
     '(' + loadResources.toString() + ')();';
-  writeToFile("var displayList = {};" + onMouseOver.toString() + loadResourcesTemplateStr, JS_DIR, "script.js");
+  writeToFile("var displayList = {};\n" + onMouseOver.toString() + loadResourcesTemplateStr, JS_DIR, "script.js");
+
+  fs.createReadStream('./templates/common/error-placeholder.png')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'resources/error-placeholder.png')));
 };
 
 // Append html, css file

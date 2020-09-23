@@ -36,7 +36,13 @@ async function loadPhotosResource() {
 
     const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
     for (const imgTag of imgTags) {
-      imgTag.src = photosResource[i].urlLocal;
+      if (photosResource[i].status === downloadedStatus.succeed) {
+        imgTag.src = photosResource[i].urlLocal;
+      }
+      else {
+        imgTag.src = './resources/error-placeholder.png';
+        imgTag.classList.add('error-placeholder');
+      }
     }
 
     const titleDivTags = document.getElementsByClassName(`ZA-div-title-${i}`);
@@ -60,7 +66,13 @@ async function loadFilesResource() {
 
     const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
     for (const imgTag of imgTags) {
-      imgTag.src = `${filesResource[i].dir}/${filesResource[i].fileNameImg}`;
+      if (filesResource[i].status === downloadedStatus.succeed) {
+        imgTag.src = `${filesResource[i].dir}/${filesResource[i].fileNameImg}`;
+      }
+      else {
+        imgTag.src = './resources/error-placeholder.png';
+        imgTag.classList.add('error-placeholder');
+      }
     }
 
     const sizeDivTags = document.getElementsByClassName(`ZA-div-size-${i}`);
@@ -94,6 +106,13 @@ async function loadGifsResource() {
     const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
     for (const imgTag of imgTags) {
       imgTag.src = `${gifsResource[i].dir}/${gifsResource[i].fileName}`;
+      if (gifsResource[i].status === downloadedStatus.succeed) {
+        imgTag.src = `${gifsResource[i].dir}/${gifsResource[i].fileName}`;
+      }
+      else {
+        imgTag.src = './resources/error-placeholder.png';
+        imgTag.classList.add('error-placeholder');
+      }
     }
   }
 }
@@ -102,7 +121,13 @@ async function loadLinksResource() {
   for (const i in linksResource) {
     const imgTags = document.getElementsByClassName(`ZA-img-${i}`);
     for (const imgTag of imgTags) {
-      imgTag.src = `${linksResource[i].dir}/${linksResource[i].fileName}`;
+      if (linksResource[i].status === downloadedStatus.succeed) {
+        imgTag.src = `${linksResource[i].dir}/${linksResource[i].fileName}`;
+      }
+      else {
+        imgTag.src = './resources/error-placeholder.png';
+        imgTag.classList.add('error-placeholder');
+      }
     }
   }
 }
