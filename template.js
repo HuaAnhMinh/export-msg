@@ -16,6 +16,7 @@ const {
   GIF_DIR,
   MP4_DIR,
   FILE_DIR,
+  STATUS,
 } = require("./utils/constants");
 
 // msgType === 2
@@ -25,15 +26,23 @@ const savePhoto = async (msgType, url, fileName) => {
     return;
   }
 
-  const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
+  try {
+    const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
 
-  const urlLocal = path.join(PHOTO_DIR, updatedFileName);
+    const urlLocal = path.join(PHOTO_DIR, updatedFileName);
 
-  photos[url] = {
-    urlLocal,
-    fileName: updatedFileName,
-    size
-  };
+    photos[url] = {
+      status: STATUS.succeed,
+      urlLocal,
+      fileName: updatedFileName,
+      size,
+    };
+  }
+  catch (error) {
+    photos[url] = {
+      status: STATUS.failed,
+    };
+  }
 };
 
 const files = {};
@@ -42,29 +51,37 @@ const saveFile = async (msgType, url, fileName, thumb, title) => {
     return;
   }
 
-  const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
+  try {
+    const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
 
-  let fileNameImg;
-  
-  if (thumb) {
-    fileName = detectFileName(thumb);
-    console.log(fileName);
-    const { updatedFileName } = await downloadExternalResource({ msgType: 6, url: thumb, fileName });
-    fileNameImg = updatedFileName;
-  } else {
-    const { extension, url } = determinateThumb(title);
-    fileNameImg = `${extension}.svg`;
-    const { updatedFileName } = await downloadExternalResource({ msgType: 6, url, fileName: fileNameImg });
-    fileNameImg = updatedFileName;
+    let fileNameImg;
+    
+    if (thumb) {
+      fileName = detectFileName(thumb);
+      console.log(fileName);
+      const { updatedFileName } = await downloadExternalResource({ msgType: 6, url: thumb, fileName });
+      fileNameImg = updatedFileName;
+    } else {
+      const { extension, url } = determinateThumb(title);
+      fileNameImg = `${extension}.svg`;
+      const { updatedFileName } = await downloadExternalResource({ msgType: 6, url, fileName: fileNameImg });
+      fileNameImg = updatedFileName;
+    }
+
+    files[url] = {
+      status: STATUS.succeed,
+      fileNameFile: updatedFileName,
+      size,
+      urlLocal: path.join(FILE_DIR, updatedFileName),
+      dir: IMAGE_DIR,
+      fileNameImg,
+    };
   }
-
-  files[url] = {
-    fileNameFile: updatedFileName,
-    size,
-    urlLocal: path.join(FILE_DIR, updatedFileName),
-    dir: IMAGE_DIR,
-    fileNameImg
-  };
+  catch (error) {
+    files[url] = {
+      status: STATUS.failed,
+    };
+  }
 };
 
 const stickers = {};
@@ -73,17 +90,25 @@ const saveSticker = async (msgType, url, fileName) => {
     return;
   }
 
-  const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
-  const sizeOf = require('image-size');
-  const dimensions = sizeOf(path.join(fullExportPath, STICKER_DIR, updatedFileName));
+  try {
+    const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
+    const sizeOf = require('image-size');
+    const dimensions = sizeOf(path.join(fullExportPath, STICKER_DIR, updatedFileName));
 
-  stickers[url] = {
-    urlLocal: path.join(STICKER_DIR, updatedFileName),
-    width: dimensions.width,
-    height: dimensions.height,
-    dirValue: STICKER_DIR,
-    fileName: updatedFileName
-  };
+    stickers[url] = {
+      status: STATUS.succeed,
+      urlLocal: path.join(STICKER_DIR, updatedFileName),
+      width: dimensions.width,
+      height: dimensions.height,
+      dirValue: STICKER_DIR,
+      fileName: updatedFileName,
+    };
+  }
+  catch (error) {
+    stickers[url] = {
+      status: STATUS.failed,
+    };
+  }
 };
 
 const gifs = {};
@@ -92,13 +117,21 @@ const saveGif = async (msgType, url, fileName) => {
     return;
   }
 
-  const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
+  try {
+    const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
 
-  gifs[url] = {
-    urlLocal: path.join(GIF_DIR, updatedFileName),
-    dir: GIF_DIR,
-    fileName: updatedFileName
-  };
+    gifs[url] = {
+      status: STATUS.succeed,
+      urlLocal: path.join(GIF_DIR, updatedFileName),
+      dir: GIF_DIR,
+      fileName: updatedFileName,
+    };
+  }
+  catch (error) {
+    gifs[url] = {
+      status: STATUS.failed,
+    };
+  }
 };
 
 const links = {};
@@ -107,15 +140,21 @@ const saveLink = async (msgType, url, thumb, fileName) => {
     return;
   }
 
-  const { updatedFileName } = await downloadExternalResource({ msgType, url: thumb, fileName });
+  try {
+    const { updatedFileName } = await downloadExternalResource({ msgType, url: thumb, fileName });
 
-  links[url] = {
-    dir: IMAGE_DIR,
-    fileName: updatedFileName
-  };
+    links[url] = {
+      status: STATUS.succeed,
+      dir: IMAGE_DIR,
+      fileName: updatedFileName,
+    };
+  }
+  catch (error) {
+    links[url] = {
+      status: STATUS.failed,
+    }
+  }
 };
-
-let hasDownloadedThumbForLocation = false;
 
 const mp3s = {};
 const saveMP3 = async (msgType, url, fileName) => {
@@ -123,13 +162,21 @@ const saveMP3 = async (msgType, url, fileName) => {
     return;
   }
 
-  const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
+  try {
+    const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
 
-  mp3s[url] = {
-    fileName: updatedFileName,
-    dir: MP3_DIR,
-    urlLocal: path.join(MP3_DIR, updatedFileName)
-  };
+    mp3s[url] = {
+      status: STATUS.succeed,
+      fileName: updatedFileName,
+      dir: MP3_DIR,
+      urlLocal: path.join(MP3_DIR, updatedFileName),
+    };
+  }
+  catch (error) {
+    mp3s[url] = {
+      status: STATUS.failed,
+    };
+  }
 };
 
 const exportResourcesToFile = () => {
@@ -147,6 +194,8 @@ const exportResourcesToFile = () => {
 };
 
 process.on('exit', exportResourcesToFile);
+
+let hasDownloadedThumbForLocation = false;
 
 exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   // Text type

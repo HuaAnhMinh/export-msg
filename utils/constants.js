@@ -26,6 +26,11 @@ const SHORTEN_NAME = DEFAULT_NAME.charAt(DEFAULT_NAME);
 const MAX_TEXT_LENGTH = 70;
 const TITLE_GROUP_CHAT = "Chat nhóm";
 
+const STATUS = {
+  succeed: 0,
+  failed: 1
+};
+
 module.exports = {
   ROOT_EXPORT_PATH,
   ROOT_FOLDER_NAME,
@@ -50,5 +55,6 @@ module.exports = {
   SHORTEN_NAME,
   MAX_TEXT_LENGTH,
   TITLE_GROUP_CHAT,
-  RESOURCES
+  RESOURCES,
+  STATUS,
 };

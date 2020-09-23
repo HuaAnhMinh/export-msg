@@ -79,13 +79,6 @@ async function loadStickersResource() {
 
     const divTags = document.getElementsByClassName(`ZA-div-style-${i}`);
     for (const divTag of divTags) {
-      // divTag.style = `
-      //   width: 130px;
-      //   height: 130px;
-      //   background-image: url('./${stickersResource[i].dirValue}/${stickersResource[i].fileName}');
-      //   background-position: 0px 0px;
-      //   background-repeat: repeat-x;
-      //   background-size: ${stickersResource[i].width} ${stickersResource[i].height}`;
       divTag.src = `./${stickersResource[i].dirValue}/${stickersResource[i].fileName}`;
     }
   }

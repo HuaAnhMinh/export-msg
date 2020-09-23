@@ -194,11 +194,16 @@ exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
       _resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) });
     }
 
-    _download(url, resolve);
+    function reject() {
+      genUniqueKey(url, subDir);
+      _reject();
+    }
+
+    _download(url, resolve, reject);
   });
 };
 
-function _download(url, resolve) {
+function _download(url, resolve, reject) {
   const protocol = url.includes("http") && !url.includes("https")
     ? require("http")
     : require("https");
@@ -218,8 +223,14 @@ function _download(url, resolve) {
         resolve(data, size);
       });  
     }
+    else if (response.statusCode === 404) {
+      reject();
+    }
     else if (response.headers.location) {
       _download(response.headers.location, resolve);
+    }
+    else {
+      reject();
     }
   })
   .end();
