@@ -11,19 +11,25 @@
   .container { 
     margin: 0; 
     font: 12px/18px; 
-    display:flex;
-    flex-direction:column;
-    align-items:center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }
+
   body{
-    margin:0px;
+    margin: 0px;
+    width: 100vw;
   }
-  div{
+
+  div {
     font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
   }
+
   a {
     text-decoration: none;
-  } 
+  }
+
   .page_header {
     position: fixed;
     border-bottom: 1px solid #e3e6e8;
@@ -50,7 +56,7 @@
     }
 
     .page_body {
-      width: 400px;
+      width: 100%;
     }
   }
 
@@ -60,7 +66,7 @@
     }
 
     .page_body {
-      width: 300px;
+      width: 100%
     }
   }
 
@@ -68,17 +74,16 @@
     padding: 16px 0;
   }
   .message {
+    width: 100%;
     margin: 20px 0;
     transition: background-color 2s ease;
-  }
-  .default {
-    padding: 10px;
   }
   .default.joined {
     margin-top: -10px;
   }
   .pull_left {
     float: left;
+    margin-left: 5px;
   }
   .service .userpic_wrap {
     padding-top: 10px;
@@ -88,8 +93,8 @@
   }
   .userpic4 {
     background-color: #4f9cd9;
-    width:34px;
-    height:34px;
+    width: 34px;
+    height: 34px;
   }
   .userpic {
     display: block;
@@ -105,10 +110,12 @@
   }
   .default .body {
     margin-left: 65px;
+    width: calc(100% - 65px);
   }
   .pull_right {
     float: right;
     margin-left: 15px;
+    margin-right: 5px;
   }
   .details {
     color: rgba(0, 0, 0, 0.5);
@@ -129,7 +136,7 @@
     clear: both;
   }
   .default .text{
-    font-size:15px;
+    font-size: 15px;
   }
   .default .media_wrap {
     padding-bottom: 5px;
@@ -141,9 +148,13 @@
     justify-content: center;
   }
  
+  .media_wrap .clearfix .gif {
+    max-width: calc(100% - 65px);
+  }
+
   .media_wrap .thumb {
     object-position: center;
-    max-width: 100%;
+    max-width: calc(100% - 65px);
     height: auto;
   }
 
@@ -151,8 +162,8 @@
     height: 90px;
   }
   .media_wrap .gif{
-    max-width:150px;
-    max-height:100px;
+    max-width: 150px;
+    max-height: 100px;
   }
   .media_wrap .icon_location{
     width: 90px;
@@ -172,7 +183,7 @@
   }
   .arrangedFlex .infor .title{
     font-size: 14px;
-    font-weight:500;
+    font-weight: 500;
     color: rgba(0, 0, 0, 0.6);
   }
   .description{
@@ -182,6 +193,7 @@
   }
   .title{
     font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
+    word-break: break-all;
   }
 </style>
 
