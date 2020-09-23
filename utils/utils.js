@@ -149,12 +149,7 @@ const genUniqueKey = (url, path) => {
 exports.genUniqueKey = genUniqueKey;
 
 exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
-  const protocol =
-    url.includes("http") && !url.includes("https")
-      ? require("http")
-      : require("https");
   let subDir = "";
-  let size = 0;
 
   switch (msgType) {
     case 2:
@@ -182,30 +177,50 @@ exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
     default:
   }
 
-  return new Promise((resolve, __) => {
+  return new Promise((_resolve, _reject) => {
     const existResource = downloadedResource[genUniqueKey(url, subDir)];
     if (existResource) {
       const { fileName, size } = existResource;
-      return resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) })
+      return _resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) })
     }
 
-    protocol
-      .request(url, function (response) {
-        let data = new Transform();
-        response.on("data", function (chunk) {
-          data.push(chunk);
-          size += chunk.length;
-        });
-        response.on("end", function () {
-          const index = genUniqueKey(url, subDir);
-          downloadedResource[index] = { fileName, size }
-          fs.writeFileSync(
-            path.join(fullExportPath, subDir, fileName),
-            data.read()
-          );
-          resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) });
-        });
-      })
-      .end();
+    function resolve(data, size) {
+      const index = genUniqueKey(url, subDir);
+      downloadedResource[index] = { fileName, size };
+      fs.writeFileSync(
+        path.join(fullExportPath, subDir, fileName),
+        data.read()
+      );
+      _resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) });
+    }
+
+    _download(url, resolve);
   });
 };
+
+function _download(url, resolve) {
+  const protocol = url.includes("http") && !url.includes("https")
+    ? require("http")
+    : require("https");
+
+  let size = 0;
+
+  protocol.request(url, function(response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      let data = new Transform();
+
+      response.on('data', function(chunk) {
+        data.push(chunk);
+        size += chunk.length;
+      });
+  
+      response.on('end', function() {
+        resolve(data, size);
+      });  
+    }
+    else if (response.headers.location) {
+      _download(response.headers.location, resolve);
+    }
+  })
+  .end();
+} 
