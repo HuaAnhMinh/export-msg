@@ -44,21 +44,26 @@ const AppendContent = async () => {
     const { dName, localDttm, fromUid } = messages[i];
     htmlString = await htmlTemplate(messages[i]);
 
-    if (isJoinedUserBefore(messages[i - 1], messages[i])) {
-      appendHtml += await ejs.renderFile('./templates/common/msg-wrapper-joined.ejs', {
-        time: convertTimeFormat(localDttm),
-        msgBody: htmlString
-      });
+    if (messages[i].msgType !== -4) {
+      if (isJoinedUserBefore(messages[i - 1], messages[i])) {
+        appendHtml += await ejs.renderFile('./templates/common/msg-wrapper-joined.ejs', {
+          time: convertTimeFormat(localDttm),
+          msgBody: htmlString
+        });
+      }
+      else {
+        const { shortenName, name, color } = determinateAvatar(fromUid, dName);
+        appendHtml += await ejs.renderFile('./templates/common/msg-wrapper.ejs', {
+          shortenName,
+          name,
+          time: convertTimeFormat(localDttm),
+          color,
+          msgBody: htmlString
+        });
+      }
     }
     else {
-      const { shortenName, name, color } = determinateAvatar(fromUid, dName);
-      appendHtml += await ejs.renderFile('./templates/common/msg-wrapper.ejs', {
-        shortenName,
-        name,
-        time: convertTimeFormat(localDttm),
-        color,
-        msgBody: htmlString
-      });
+      appendHtml += htmlString;
     }
   }
 

@@ -4,6 +4,7 @@ const {
   detectFileName,
   downloadExternalResource,
   determinateThumb,
+  convertTimeFormat,
 } = require("./utils/utils");
 const {
   STICKER_DOWNLOAD_URL,
@@ -197,7 +198,7 @@ process.on('exit', exportResourcesToFile);
 
 let hasDownloadedThumbForLocation = false;
 
-exports.htmlTemplate = async ({ msgType, msgId, message }) => {
+exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   // Text type
   if (msgType === 1) {
     if (typeof message === 'string') {
@@ -271,7 +272,7 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
       url
     });
   }
-  // // Location type
+  // Location type
   else if (msgType === 17) {
     const { desc, lat, lo } = message;
     const iconName = "location.png";
@@ -303,6 +304,13 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
       title,
       wrapImgClass: thumb ? '' : 'wrap_icon_file',
       imgClass: thumb ? 'thumb' : 'icon_file'
+    });
+  }
+  // Add new member
+  else if (msgType === -4) {
+    return ejs.renderFile('./templates/msg--4.ejs', {
+      title: JSON.stringify(message),
+      time: convertTimeFormat(parseInt(sendDttm)),
     });
   }
   // Default
