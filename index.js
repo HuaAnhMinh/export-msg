@@ -5,6 +5,9 @@ const { MainHandler } = require("./controller");
 global.fullExportPath = "";
 global.rootExportPath = "";
 global.downloadedResource = {};
+global.resourcesSize = {
+  totalSize: 0,
+};
 
 const outputPath = './output';
 

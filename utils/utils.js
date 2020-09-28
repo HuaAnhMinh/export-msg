@@ -21,7 +21,9 @@ const {
   FILE_DIR,
   CSS_DIR,
   JS_DIR,
-  RESOURCES
+  RESOURCES,
+  STICKER_DOWNLOAD_URL,
+  LOCATION_ICON
 } = require("./constants");
 
 
@@ -148,6 +150,46 @@ const genUniqueKey = (url, path) => {
 }
 exports.genUniqueKey = genUniqueKey;
 
+exports.calculateTotalExternalResourcesSize = (messages=[]) => {
+  for (let i = 0; i < messages.length; ++i) {
+    const message = messages[i];
+    switch (message.msgType) {
+      case 2:
+        resourcesSize[message.message.normalUrl] = message.message.normalUrl;
+        break;
+      case 4:
+        const stickerUrl = STICKER_DOWNLOAD_URL.replace("IdValue", message.message.id);
+        resourcesSize[stickerUrl] = stickerUrl;
+        break;
+      case 6:
+        resourcesSize[message.message.thumb] = message.message.thumb;
+        break;
+      case 7:
+        resourcesSize[message.message.normalUrl] = message.message.normalUrl;
+        break;
+      case 17:
+        resourcesSize[LOCATION_ICON] = LOCATION_ICON;
+        break;
+      case 19:
+        const params = JSON.parse(message.message.params);
+        const size = parseInt(params.fileSize);
+        resourcesSize.totalSize += size;
+        resourcesSize[message.message.href] = size;
+
+        if (message.message.thumb) {
+          resourcesSize[message.message.thumb] = message.message.thumb;
+        }
+        else {
+          const { extension, url } = this.determinateThumb(message.message.title);
+          resourcesSize[url] = url;
+        }
+        break;
+      default:
+        break;
+    }
+  }
+};
+
 exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
   let subDir = "";
 
@@ -234,4 +276,4 @@ function _download(url, resolve, reject) {
     }
   })
   .end();
-} 
+}
