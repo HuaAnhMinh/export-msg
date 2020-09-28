@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const { Transform } = require("stream");
 const crypto = require("crypto");
+const sem = require('semaphore')(1);
 
 const {
   ROOT_FOLDER_NAME,
@@ -155,39 +156,58 @@ exports.calculateTotalExternalResourcesSize = (messages=[]) => {
     const message = messages[i];
     switch (message.msgType) {
       case 2:
-        resourcesSize[message.message.normalUrl] = message.message.normalUrl;
+        if (!resourcesSize.items.includes(message.message.normalUrl)) {
+          resourcesSize.items.push(message.message.normalUrl);
+        }
         break;
       case 4:
         const stickerUrl = STICKER_DOWNLOAD_URL.replace("IdValue", message.message.id);
-        resourcesSize[stickerUrl] = stickerUrl;
+        if (!resourcesSize.items.includes(stickerUrl)) {
+          resourcesSize.items.push(stickerUrl);
+        }
         break;
       case 6:
-        resourcesSize[message.message.thumb] = message.message.thumb;
+        if (!resourcesSize.items.includes(message.message.thumb)) {
+          resourcesSize.items.push(message.message.thumb);
+        }
         break;
       case 7:
-        resourcesSize[message.message.normalUrl] = message.message.normalUrl;
+        if (!resourcesSize.items.includes(message.message.normalUrl)) {
+          resourcesSize.items.push(message.message.normalUrl);
+        }
         break;
       case 17:
-        resourcesSize[LOCATION_ICON] = LOCATION_ICON;
+        if (!resourcesSize.items.includes(LOCATION_ICON)) {
+          resourcesSize.items.push(LOCATION_ICON);
+        }
         break;
       case 19:
         const params = JSON.parse(message.message.params);
-        const size = parseInt(params.fileSize);
-        resourcesSize.totalSize += size;
-        resourcesSize[message.message.href] = size;
+        if (!resourcesSize.items.includes(message.message.href)) {
+          const size = parseInt(params.fileSize);
+          resourcesSize[message.message.href] = size;
+          resourcesSize.items.push(message.message.href);
 
-        if (message.message.thumb) {
-          resourcesSize[message.message.thumb] = message.message.thumb;
-        }
-        else {
-          const { extension, url } = this.determinateThumb(message.message.title);
-          resourcesSize[url] = url;
+          if (message.message.thumb) {
+            if (!resourcesSize.items.includes(message.message.thumb)) {
+              resourcesSize.items.push(message.message.thumb);
+            }
+          }
+          else {
+            const { extension, url } = this.determinateThumb(message.message.title);
+            if (!resourcesSize.items.includes(url)) {
+              resourcesSize.items.push(url);
+            }
+          }
         }
         break;
       default:
         break;
     }
   }
+
+  logs = logs.concat(resourcesSize.items.join('\n'));
+  logs = logs.concat('\n');
 };
 
 exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
@@ -245,7 +265,17 @@ exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
   });
 };
 
-function _download(url, resolve, reject) {
+function _download(
+  url,
+  resolve,
+  reject,
+  cb=(totalItems, totalDownloadedItems, percentage) => {
+    logs = logs.concat('Total items: ' + totalItems);
+    logs = logs.concat('\nTotal downloaded items: ' + totalDownloadedItems);
+    logs = logs.concat('\nPercentage: ' + percentage);
+    logs = logs.concat('\n\n==================================================\n\n');
+  }
+) {
   const protocol = url.includes("http") && !url.includes("https")
     ? require("http")
     : require("https");
@@ -259,10 +289,37 @@ function _download(url, resolve, reject) {
       response.on('data', function(chunk) {
         data.push(chunk);
         size += chunk.length;
+
+        if (resourcesSize.hasOwnProperty(url)) {
+          const innerPercentage = (chunk.length / resourcesSize[url]) * 100;
+          const totalPercentage = (1 / resourcesSize.items.length) * 100;
+
+          sem.take(() => {
+            resourcesSize.percentage += (innerPercentage * totalPercentage) / 100;
+            sem.leave();
+          });
+
+          cb(resourcesSize.items.length, resourcesSize.downloadedItems, resourcesSize.percentage);
+        }
       });
   
       response.on('end', function() {
         resolve(data, size);
+        
+        if (!resourcesSize.hasOwnProperty(url)) {
+          sem.take(() => {
+            resourcesSize.percentage += (1 / resourcesSize.items.length) * 100;
+            sem.leave();
+          });
+        }
+
+        sem.take(() => {
+          ++resourcesSize.downloadedItems;
+          sem.leave();
+        });
+
+        cb(resourcesSize.items.length, resourcesSize.downloadedItems, resourcesSize.percentage);
+        logs = logs.concat(url);
       });  
     }
     else if (response.statusCode === 404) {

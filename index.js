@@ -6,8 +6,12 @@ global.fullExportPath = "";
 global.rootExportPath = "";
 global.downloadedResource = {};
 global.resourcesSize = {
-  totalSize: 0,
+  items: [],
+  percentage: 0,
+  downloadedItems: 0,
 };
+
+global.logs = '';
 
 const outputPath = './output';
 

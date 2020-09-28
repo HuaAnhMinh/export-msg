@@ -192,6 +192,8 @@ const exportResourcesToFile = () => {
 
   const end = (new Date()).valueOf();
   console.log(end);
+  
+  fs.writeFileSync(path.join(fullExportPath, '/resources/logs.txt'), logs);
 };
 
 process.on('exit', exportResourcesToFile);
