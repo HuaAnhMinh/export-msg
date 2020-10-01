@@ -3,6 +3,7 @@ const fs = require("fs");
 const { Transform } = require("stream");
 const crypto = require("crypto");
 const sem = require('semaphore')(1);
+const { v4: uuidv4 } = require('uuid');
 
 const {
   ROOT_FOLDER_NAME,
@@ -151,52 +152,83 @@ const genUniqueKey = (url, path) => {
 }
 exports.genUniqueKey = genUniqueKey;
 
-exports.calculateTotalExternalResourcesSize = (messages=[]) => {
+exports.collectRawResourcesInfo = (messages=[]) => {
   for (let i = 0; i < messages.length; ++i) {
     const message = messages[i];
     switch (message.msgType) {
       case 2:
-        if (!resourcesSize.items.includes(message.message.normalUrl)) {
-          resourcesSize.items.push(message.message.normalUrl);
+        if (!resourcesInfo.hasOwnProperty(message.message.normalUrl)) {
+          resourcesInfo[message.message.normalUrl] = {
+            hasDownloaded: false,
+            fileName: this.detectFileName(message.message.normalUrl),
+          };
         }
         break;
+      case 3:
+        if (!resourcesInfo.hasOwnProperty(message.message.href)) {
+          resourcesInfo[message.message.href] = {
+            hasDownloaded: false,
+            fileName: `${uuidv4()}.amr`,
+          };
+        }
       case 4:
         const stickerUrl = STICKER_DOWNLOAD_URL.replace("IdValue", message.message.id);
-        if (!resourcesSize.items.includes(stickerUrl)) {
-          resourcesSize.items.push(stickerUrl);
+        if (!resourcesInfo.hasOwnProperty(stickerUrl)) {
+          resourcesInfo[stickerUrl] = {
+            hasDownloaded: false,
+            fileName: `${uuidv4()}.png`,
+          };
         }
         break;
       case 6:
-        if (!resourcesSize.items.includes(message.message.thumb)) {
-          resourcesSize.items.push(message.message.thumb);
+        if (!resourcesInfo.hasOwnProperty(message.message.thumb)) {
+          resourcesInfo[message.message.thumb] = {
+            hasDownloaded: false,
+            fileName: `${uuidv4()}.jpg`,
+          };
         }
         break;
       case 7:
-        if (!resourcesSize.items.includes(message.message.normalUrl)) {
-          resourcesSize.items.push(message.message.normalUrl);
+        if (!resourcesInfo.hasOwnProperty(message.message.normalUrl)) {
+          resourcesInfo[message.message.normalUrl] = {
+            hasDownloaded: false,
+            fileName: `${uuidv4()}.gif`,
+          };
         }
         break;
       case 17:
-        if (!resourcesSize.items.includes(LOCATION_ICON)) {
-          resourcesSize.items.push(LOCATION_ICON);
+        if (!resourcesInfo.hasOwnProperty(LOCATION_ICON)) {
+          resourcesInfo[LOCATION_ICON] = {
+            hasDownloaded: false,
+            fileName: 'location.png',
+          };
         }
         break;
       case 19:
         const params = JSON.parse(message.message.params);
-        if (!resourcesSize.items.includes(message.message.href)) {
+        if (!resourcesInfo.hasOwnProperty(message.message.href)) {
           const size = parseInt(params.fileSize);
-          resourcesSize[message.message.href] = size;
-          resourcesSize.items.push(message.message.href);
+          resourcesInfo[message.message.href] = {
+            hasDownloaded: false,
+            size,
+            fileName: message.message.title,
+          };
 
           if (message.message.thumb) {
-            if (!resourcesSize.items.includes(message.message.thumb)) {
-              resourcesSize.items.push(message.message.thumb);
+            if (!resourcesInfo.hasOwnProperty(message.message.thumb)) {
+              resourcesInfo[message.message.thumb] = {
+                hasDownloaded: false,
+                fileName: this.detectFileName(message.message.thumb),
+              };
             }
           }
           else {
             const { extension, url } = this.determinateThumb(message.message.title);
-            if (!resourcesSize.items.includes(url)) {
-              resourcesSize.items.push(url);
+            if (!resourcesInfo.hasOwnProperty(url)) {
+              resourcesInfo[url] = {
+                hasDownloaded: false,
+                fileName: `${extension}.svg`,
+              };
             }
           }
         }
@@ -206,7 +238,8 @@ exports.calculateTotalExternalResourcesSize = (messages=[]) => {
     }
   }
 
-  logs = logs.concat(resourcesSize.items.join('\n'));
+  logs = logs.concat(Array.from(Object.keys(resourcesInfo)).join('\n'));
+  logs = logs.concat(`\nTotal resources items: ${Array.from(Object.keys(resourcesInfo)).length}\n`);
   logs = logs.concat('\n');
 };
 
@@ -240,28 +273,33 @@ exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
   }
 
   return new Promise((_resolve, _reject) => {
-    const existResource = downloadedResource[genUniqueKey(url, subDir)];
-    if (existResource) {
-      const { fileName, size } = existResource;
-      return _resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) })
+    if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasDownloaded) {
+      return _resolve({
+        updatedFileName: resourcesInfo[url].fileName,
+        size: convertSizeOfFile(resourcesInfo[url].size),
+      });
     }
 
     function resolve(data, size) {
-      const index = genUniqueKey(url, subDir);
-      downloadedResource[index] = { fileName, size };
       fs.writeFileSync(
         path.join(fullExportPath, subDir, fileName),
         data.read()
       );
-      _resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) });
+
+      _resolve({
+        updatedFileName: fileName,
+        size: convertSizeOfFile(size, 0)
+      });
     }
 
     function reject() {
-      genUniqueKey(url, subDir);
       _reject();
     }
 
-    _download(url, resolve, reject);
+    const status = _download(url, resolve, reject);
+    if (status === 1) {
+      reject();
+    }
   });
 };
 
@@ -290,42 +328,68 @@ function _download(
         data.push(chunk);
         size += chunk.length;
 
-        if (resourcesSize.hasOwnProperty(url)) {
-          const innerPercentage = (chunk.length / resourcesSize[url]) * 100;
-          const totalPercentage = (1 / resourcesSize.items.length) * 100;
+        if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasOwnProperty('size')) {
+          const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
+          const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
 
           sem.take(() => {
-            resourcesSize.percentage += (innerPercentage * totalPercentage) / 100;
+            downloadProgress.percentage += (innerPercentage * totalPercentage) / 100;
             sem.leave();
           });
 
-          cb(resourcesSize.items.length, resourcesSize.downloadedItems, resourcesSize.percentage);
+          cb(
+            Array.from(Object.keys(resourcesInfo)).length,
+            downloadProgress.downloadedItems.length,
+            downloadProgress.percentage
+          );
         }
       });
   
       response.on('end', function() {
         resolve(data, size);
         
-        if (!resourcesSize.hasOwnProperty(url)) {
+        if (resourcesInfo.hasOwnProperty(url) && !resourcesInfo[url].hasOwnProperty('size')) {
           sem.take(() => {
-            resourcesSize.percentage += (1 / resourcesSize.items.length) * 100;
+            downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
             sem.leave();
           });
         }
 
         sem.take(() => {
-          ++resourcesSize.downloadedItems;
+          if (!downloadProgress.downloadedItems.includes(url)) {
+            downloadProgress.downloadedItems.push(url);
+            console.clear();
+            console.log(`Downloaded items: ${downloadProgress.downloadedItems.length}`);
+            console.log(`Percentage: ${downloadProgress.percentage.toFixed(1)}%`);
+          }
           sem.leave();
         });
 
-        cb(resourcesSize.items.length, resourcesSize.downloadedItems, resourcesSize.percentage);
-        logs = logs.concat(url);
+        if (!resourcesInfo[url].hasDownloaded) {
+          resourcesInfo[url].hasDownloaded = true;
+        }
+
+        if (!resourcesInfo[url].hasOwnProperty('size')) {
+          resourcesInfo[url].size = size;
+        }
+
+        logs = logs.concat(`\n${url}\n`);
+
+        cb(
+          Array.from(Object.keys(resourcesInfo)).length,
+          downloadProgress.downloadedItems.length,
+          downloadProgress.percentage
+        );
       });  
     }
     else if (response.statusCode === 404) {
       reject();
     }
     else if (response.headers.location) {
+      if (resourcesInfo.hasOwnProperty(url)) {
+        resourcesInfo[response.headers.location] = { ...resourcesInfo[url] };
+        delete resourcesInfo[url];
+      }
       _download(response.headers.location, resolve);
     }
     else {

@@ -39,11 +39,7 @@ const savePhoto = async (msgType, url, fileName) => {
       size,
     };
   }
-  catch (error) {
-    photos[url] = {
-      status: STATUS.failed,
-    };
-  }
+  catch (error) {}
 };
 
 const files = {};
@@ -58,14 +54,20 @@ const saveFile = async (msgType, url, fileName, thumb, title) => {
     let fileNameImg;
     
     if (thumb) {
-      fileName = detectFileName(thumb);
-      console.log(fileName);
-      const { updatedFileName } = await downloadExternalResource({ msgType: 6, url: thumb, fileName });
+      const { updatedFileName } = await downloadExternalResource({
+        msgType: 6,
+        url: thumb,
+        fileName: resourcesInfo[thumb].fileName,
+      });
       fileNameImg = updatedFileName;
-    } else {
+    }
+    else {
       const { extension, url } = determinateThumb(title);
-      fileNameImg = `${extension}.svg`;
-      const { updatedFileName } = await downloadExternalResource({ msgType: 6, url, fileName: fileNameImg });
+      const { updatedFileName } = await downloadExternalResource({
+        msgType: 6,
+        url,
+        fileName: resourcesInfo[url].fileName,
+      });
       fileNameImg = updatedFileName;
     }
 
@@ -78,11 +80,7 @@ const saveFile = async (msgType, url, fileName, thumb, title) => {
       fileNameImg,
     };
   }
-  catch (error) {
-    files[url] = {
-      status: STATUS.failed,
-    };
-  }
+  catch (error) {}
 };
 
 const stickers = {};
@@ -105,11 +103,7 @@ const saveSticker = async (msgType, url, fileName) => {
       fileName: updatedFileName,
     };
   }
-  catch (error) {
-    stickers[url] = {
-      status: STATUS.failed,
-    };
-  }
+  catch (error) {}
 };
 
 const gifs = {};
@@ -128,11 +122,7 @@ const saveGif = async (msgType, url, fileName) => {
       fileName: updatedFileName,
     };
   }
-  catch (error) {
-    gifs[url] = {
-      status: STATUS.failed,
-    };
-  }
+  catch (error) {}
 };
 
 const links = {};
@@ -150,11 +140,7 @@ const saveLink = async (msgType, url, thumb, fileName) => {
       fileName: updatedFileName,
     };
   }
-  catch (error) {
-    links[url] = {
-      status: STATUS.failed,
-    }
-  }
+  catch (error) {}
 };
 
 const mp3s = {};
@@ -173,11 +159,7 @@ const saveMP3 = async (msgType, url, fileName) => {
       urlLocal: path.join(MP3_DIR, updatedFileName),
     };
   }
-  catch (error) {
-    mp3s[url] = {
-      status: STATUS.failed,
-    };
-  }
+  catch (error) {}
 };
 
 const exportResourcesToFile = () => {
@@ -198,8 +180,6 @@ const exportResourcesToFile = () => {
 
 process.on('exit', exportResourcesToFile);
 
-let hasDownloadedThumbForLocation = false;
-
 exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   // Text type
   if (msgType === 1) {
@@ -217,76 +197,87 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   // Photo type
   else if (msgType === 2) {
     const { normalUrl: url = "", title = "" } = message;
-    let fileName = detectFileName(url);
 
-    savePhoto(msgType, url, fileName);
+    if (!downloadProgress.downloadingItems.includes(url)) {
+      downloadProgress.downloadingItems.push(url);
+      savePhoto(msgType, url, resourcesInfo[url].fileName);
+    }
 
     return ejs.renderFile("./templates/msg-2.ejs", {
-      url
+      url,
     });
   }
   // Mp3 type
   else if (msgType === 3) {
     const { href: url } = message;
-    let fileName = `${msgId}.amr`;
 
-    saveMP3(msgType, url, fileName);
+    if (!downloadProgress.downloadingItems.includes(url)) {
+      downloadProgress.downloadingItems.push(url);
+      saveMP3(msgType, url, resourcesInfo[url].fileName);
+    }
 
     return ejs.renderFile("./templates/msg-3.ejs", {
-      url
+      url,
     });
   }
   // Sticker type
   else if (msgType === 4) {
-    const sizeOf = require("image-size");
     const { id } = message;
     const url = STICKER_DOWNLOAD_URL.replace("IdValue", id);
-    let fileName = `${msgId}.png`;
 
-    saveSticker(msgType, url, fileName);
+    if (!downloadProgress.downloadingItems.includes(url)) {
+      downloadProgress.downloadingItems.push(url);
+      saveSticker(msgType, url, resourcesInfo[url].fileName);
+    }
 
     return stringHtml = await ejs.renderFile("./templates/msg-4.ejs", {
       url,
-      msgId,
     });
   }
   // Link type
   else if (msgType === 6) {
     const { title = "", description = "", href = "", thumb = "", } = message;
-    let fileName = `${msgId}.jpg`;
 
-    saveLink(msgType, href, thumb, fileName);
+    if (!downloadProgress.downloadingItems.includes(thumb)) {
+      downloadProgress.downloadingItems.push(thumb);
+      saveLink(msgType, href, thumb, resourcesInfo[thumb].fileName);
+    }
 
     return ejs.renderFile("./templates/msg-6.ejs", {
       url: href,
       title: title,
-      description: description
+      description: description,
     });
   }
   // Gif
   else if (msgType === 7) {
     const { normalUrl: url } = message;
-    let fileName = `${msgId}.gif`;
 
-    saveGif(msgType, url, fileName);
+    if (!downloadProgress.downloadingItems.includes(url)) {
+      downloadProgress.downloadingItems.push(url);
+      saveGif(msgType, url, resourcesInfo[url].fileName);
+    }
 
     return ejs.renderFile("./templates/msg-7.ejs", {
-      url
+      url,
     });
   }
   // Location type
   else if (msgType === 17) {
     const { desc, lat, lo } = message;
-    const iconName = "location.png";
     const urlGgMap = GOOGLE_MAP.replace("latValue", lat).replace("loValue", lo);
 
-    if (!hasDownloadedThumbForLocation) {
-      downloadExternalResource({ msgType: 6, url: LOCATION_ICON, fileName: iconName });
-      hasDownloadedThumbForLocation = true;
+    if (!downloadProgress.downloadingItems.includes(LOCATION_ICON)) {
+      downloadProgress.downloadingItems.push(LOCATION_ICON);
+      downloadExternalResource({
+        msgType: 6,
+        url: LOCATION_ICON,
+        fileName: resourcesInfo[LOCATION_ICON].fileName,
+      });
     }
 
     return ejs.renderFile("./templates/msg-17.ejs", {
-      fileName: iconName,
+      fileName: resourcesInfo[LOCATION_ICON].fileName,
       url: urlGgMap,
       desc,
       lat,
@@ -297,9 +288,11 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   // File type
   else if (msgType === 19) {
     const { title = "", href = "", thumb = "" } = message;
-    let fileNameFile = title;
 
-    saveFile(msgType, href, fileNameFile, thumb, title);
+    if (!downloadProgress.downloadingItems.includes(href)) {
+      downloadProgress.downloadingItems.push(href);
+      saveFile(msgType, href, resourcesInfo[href].fileName, thumb, title);
+    }
 
     return ejs.renderFile("./templates/msg-19.ejs", {
       url: href,

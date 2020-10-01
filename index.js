@@ -4,11 +4,12 @@ const { MainHandler } = require("./controller");
 
 global.fullExportPath = "";
 global.rootExportPath = "";
-global.downloadedResource = {};
-global.resourcesSize = {
-  items: [],
+
+global.resourcesInfo = {};
+global.downloadProgress = {
+  downloadedItems: [],
   percentage: 0,
-  downloadedItems: 0,
+  downloadingItems: [],
 };
 
 global.logs = '';

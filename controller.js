@@ -7,7 +7,7 @@ const {
   isJoinedUserBefore,
   convertTimeFormat,
   determinateAvatar,
-  calculateTotalExternalResourcesSize,
+  collectRawResourcesInfo,
 } = require("./utils/utils");
 const { TITLE_GROUP_CHAT, CSS_DIR, JS_DIR } = require("./utils/constants");
 const { onMouseOver, loadResources, loadPhotosResource, loadFilesResource, loadStickersResource, loadGifsResource, loadLinksResource, loadMP3sResource, downloadedStatus } = require("./public/script");
@@ -74,6 +74,6 @@ const AppendContent = async () => {
 
 exports.MainHandler = async () => {
   await initialContent();
-  calculateTotalExternalResourcesSize(messages);
+  collectRawResourcesInfo(messages);
   await AppendContent();
 };
