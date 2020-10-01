@@ -171,9 +171,6 @@ const exportResourcesToFile = () => {
   fs.writeFileSync(path.join(fullExportPath, '/resources/gifs.js'), 'const gifsResource = ' + JSON.stringify(gifs));
   fs.writeFileSync(path.join(fullExportPath, '/resources/links.js'), 'const linksResource = ' + JSON.stringify(links));
   fs.writeFileSync(path.join(fullExportPath, '/resources/mp3s.js'), 'const mp3sResource = ' + JSON.stringify(mp3s));
-
-  const end = (new Date()).valueOf();
-  console.log(end);
   
   fs.writeFileSync(path.join(fullExportPath, '/resources/logs.txt'), logs);
 };

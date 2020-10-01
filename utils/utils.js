@@ -237,10 +237,6 @@ exports.collectRawResourcesInfo = (messages=[]) => {
         break;
     }
   }
-
-  logs = logs.concat(Array.from(Object.keys(resourcesInfo)).join('\n'));
-  logs = logs.concat(`\nTotal resources items: ${Array.from(Object.keys(resourcesInfo)).length}\n`);
-  logs = logs.concat('\n');
 };
 
 exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
@@ -296,10 +292,7 @@ exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
       _reject();
     }
 
-    const status = _download(url, resolve, reject);
-    if (status === 1) {
-      reject();
-    }
+    _download(url, resolve, reject);
   });
 };
 
@@ -337,11 +330,13 @@ function _download(
             sem.leave();
           });
 
-          cb(
-            Array.from(Object.keys(resourcesInfo)).length,
-            downloadProgress.downloadedItems.length,
-            downloadProgress.percentage
-          );
+          if (typeof cb === 'function') {
+            cb(
+              Array.from(Object.keys(resourcesInfo)).length,
+              downloadProgress.downloadedItems.length,
+              downloadProgress.percentage
+            );
+          }
         }
       });
   
@@ -358,9 +353,6 @@ function _download(
         sem.take(() => {
           if (!downloadProgress.downloadedItems.includes(url)) {
             downloadProgress.downloadedItems.push(url);
-            console.clear();
-            console.log(`Downloaded items: ${downloadProgress.downloadedItems.length}`);
-            console.log(`Percentage: ${downloadProgress.percentage.toFixed(1)}%`);
           }
           sem.leave();
         });
@@ -373,13 +365,15 @@ function _download(
           resourcesInfo[url].size = size;
         }
 
-        logs = logs.concat(`\n${url}\n`);
+        logs = logs.concat(`${url}\n`);
 
-        cb(
-          Array.from(Object.keys(resourcesInfo)).length,
-          downloadProgress.downloadedItems.length,
-          downloadProgress.percentage
-        );
+        if (typeof cb === 'function') {
+          cb(
+            Array.from(Object.keys(resourcesInfo)).length,
+            downloadProgress.downloadedItems.length,
+            downloadProgress.percentage
+          );
+        }
       });  
     }
     else if (response.statusCode === 404) {
@@ -398,3 +392,23 @@ function _download(
   })
   .end();
 }
+
+function _logProgressToScreen() {
+  console.clear();
+  console.log(`Downloaded items: ${downloadProgress.downloadedItems.length}`);
+  console.log(`Percentage: ${downloadProgress.percentage.toFixed(2)}%`);
+}
+
+exports.showProgress = () => {
+  _logProgressToScreen();
+
+  let progressInterval = setInterval(() => {
+    _logProgressToScreen();
+
+    if (downloadProgress.percentage >= 100) {
+      _logProgressToScreen();
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+  }, 1000);
+};
