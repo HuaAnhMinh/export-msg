@@ -2,7 +2,7 @@ const ROOT_EXPORT_PATH = "/Zalo_Desktop"; // Edit here
 const ROOT_FOLDER_NAME = "MessageExport";
 const JS_DIR = "js";
 const IMAGE_DIR = "images";
-const CSS_DIR = "css";
+const STYLES_DIR = "styles";
 const PHOTO_DIR = "photos";
 const MP3_DIR = "mp3s";
 const STICKER_DIR = "stickers";
@@ -36,7 +36,7 @@ module.exports = {
   ROOT_FOLDER_NAME,
   JS_DIR,
   IMAGE_DIR,
-  CSS_DIR,
+  STYLES_DIR,
   STICKER_DOWNLOAD_URL,
   PHOTO_DIR,
   MP3_DIR,

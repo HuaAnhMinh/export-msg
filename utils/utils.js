@@ -21,7 +21,7 @@ const {
   GIF_DIR,
   MP4_DIR,
   FILE_DIR,
-  CSS_DIR,
+  STYLES_DIR,
   JS_DIR,
   RESOURCES,
   STICKER_DOWNLOAD_URL,
@@ -48,7 +48,7 @@ exports.createExportDataDir = () => {
   fs.mkdirSync(fullExportPath);
   fs.mkdirSync(path.join(fullExportPath, JS_DIR));
   fs.mkdirSync(path.join(fullExportPath, IMAGE_DIR));
-  fs.mkdirSync(path.join(fullExportPath, CSS_DIR));
+  fs.mkdirSync(path.join(fullExportPath, STYLES_DIR));
   fs.mkdirSync(path.join(fullExportPath, PHOTO_DIR));
   fs.mkdirSync(path.join(fullExportPath, MP3_DIR));
   fs.mkdirSync(path.join(fullExportPath, STICKER_DIR));
@@ -327,6 +327,9 @@ function _download(
 
           sem.take(() => {
             downloadProgress.percentage += (innerPercentage * totalPercentage) / 100;
+            if (downloadProgress.percentage > 100) {
+              downloadProgress.percentage = 100;
+            }
             sem.leave();
           });
 
@@ -346,6 +349,9 @@ function _download(
         if (resourcesInfo.hasOwnProperty(url) && !resourcesInfo[url].hasOwnProperty('size')) {
           sem.take(() => {
             downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
+            if (downloadProgress.percentage > 100) {
+              downloadProgress.percentage = 100;
+            }
             sem.leave();
           });
         }

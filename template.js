@@ -181,12 +181,12 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   // Text type
   if (msgType === 1) {
     if (typeof message === 'string') {
-      return ejs.renderFile("./templates/msg-1.ejs", {
+      return ejs.renderFile("./templates/messages/message-1.ejs", {
         message,
       });
     }
     else {
-      return ejs.renderFile('./templates/msg-1.ejs', {
+      return ejs.renderFile('./templates/messages/message-1.ejs', {
         message: message.title,
       });
     }
@@ -200,23 +200,23 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
       savePhoto(msgType, url, resourcesInfo[url].fileName);
     }
 
-    return ejs.renderFile("./templates/msg-2.ejs", {
+    return ejs.renderFile("./templates/messages/message-2.ejs", {
       url,
     });
   }
-  // Mp3 type
-  else if (msgType === 3) {
-    const { href: url } = message;
+  // // Mp3 type
+  // else if (msgType === 3) {
+  //   const { href: url } = message;
 
-    if (!downloadProgress.downloadingItems.includes(url)) {
-      downloadProgress.downloadingItems.push(url);
-      saveMP3(msgType, url, resourcesInfo[url].fileName);
-    }
+  //   if (!downloadProgress.downloadingItems.includes(url)) {
+  //     downloadProgress.downloadingItems.push(url);
+  //     saveMP3(msgType, url, resourcesInfo[url].fileName);
+  //   }
 
-    return ejs.renderFile("./templates/msg-3.ejs", {
-      url,
-    });
-  }
+  //   return ejs.renderFile("./templates/msg-3.ejs", {
+  //     url,
+  //   });
+  // }
   // Sticker type
   else if (msgType === 4) {
     const { id } = message;
@@ -227,22 +227,23 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
       saveSticker(msgType, url, resourcesInfo[url].fileName);
     }
 
-    return stringHtml = await ejs.renderFile("./templates/msg-4.ejs", {
+    return stringHtml = await ejs.renderFile("./templates/messages/message-4.ejs", {
       url,
     });
   }
   // Link type
   else if (msgType === 6) {
-    const { title = "", description = "", href = "", thumb = "", } = message;
+    const { title = "", description = "", href = "", thumb = "", params } = message;
+    const mediaTitle = (JSON.parse(params)).mediaTitle;
 
     if (!downloadProgress.downloadingItems.includes(thumb)) {
       downloadProgress.downloadingItems.push(thumb);
       saveLink(msgType, href, thumb, resourcesInfo[thumb].fileName);
     }
 
-    return ejs.renderFile("./templates/msg-6.ejs", {
+    return ejs.renderFile("./templates/messages/message-6.ejs", {
       url: href,
-      title: title,
+      title: mediaTitle,
       description: description,
     });
   }
@@ -255,7 +256,7 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
       saveGif(msgType, url, resourcesInfo[url].fileName);
     }
 
-    return ejs.renderFile("./templates/msg-7.ejs", {
+    return ejs.renderFile("./templates/messages/message-7.ejs", {
       url,
     });
   }
@@ -273,7 +274,7 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
       });
     }
 
-    return ejs.renderFile("./templates/msg-17.ejs", {
+    return ejs.renderFile("./templates/messages/message-17.ejs", {
       fileName: resourcesInfo[LOCATION_ICON].fileName,
       url: urlGgMap,
       desc,
@@ -291,24 +292,23 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
       saveFile(msgType, href, resourcesInfo[href].fileName, thumb, title);
     }
 
-    return ejs.renderFile("./templates/msg-19.ejs", {
+    return ejs.renderFile("./templates/messages/message-19.ejs", {
       url: href,
       title,
-      wrapImgClass: thumb ? '' : 'wrap_icon_file',
-      imgClass: thumb ? 'thumb' : 'icon_file'
+      imgClass: thumb ? 'thumb' : 'img'
     });
   }
   // Add new member
   else if (msgType === -4) {
-    return ejs.renderFile('./templates/msg--4.ejs', {
+    return ejs.renderFile('./templates/messages/message--4.ejs', {
       title: JSON.stringify(message),
       time: convertTimeFormat(parseInt(sendDttm)),
     });
   }
   // Default
   else {
-    return ejs.renderFile("./templates/default.ejs", {
-      title: JSON.stringify(message),
+    return ejs.renderFile("./templates/messages/message-1.ejs", {
+      message: JSON.stringify(message),
     });
   }
 };

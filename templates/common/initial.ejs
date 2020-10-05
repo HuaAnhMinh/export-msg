@@ -1,215 +1,23 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <link rel="stylesheet" href="./styles/message.css">
+  <link rel="stylesheet" href="./styles/message-2.css">
+  <link rel="stylesheet" href="./styles/message-4.css">
+  <link rel="stylesheet" href="./styles/message-6.css">
+  <link rel="stylesheet" href="./styles/message-7.css">
+  <link rel="stylesheet" href="./styles/message-17.css">
+  <link rel="stylesheet" href="./styles/message-19.css">
+  <link rel="stylesheet" href="./styles/message--4.css">
   <title>Exported Data</title>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 </head>
-
-<style>
-  .error-placeholder {
-    height: 100px;
-    width: 100px;
-  }
-
-  .container { 
-    margin: 0; 
-    font: 12px/18px; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  body{
-    margin: 0px;
-    width: 100vw;
-  }
-
-  div {
-    font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
-  }
-
-  a {
-    text-decoration: none;
-  }
-
-  .page_header {
-    position: fixed;
-    border-bottom: 1px solid #e3e6e8;
-    width: 100%;
-    z-index: 10;
-    background-color: #ffff;
-  }
-
-  .header-content {
-    width: 600px;
-    margin: 0 auto;
-  }
-
-  .page_body{
-    padding-top: 64px;
-    width: 600px;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-
-  @media only screen and (min-width: 400px) and (max-width: 599px) {
-    .header-content {
-      width: 400px;
-    }
-
-    .page_body {
-      width: 100%;
-    }
-  }
-
-  @media only screen and (min-width: 300px) and (max-width: 399px) {
-    .header-content {
-      width: 300px;
-    }
-
-    .page_body {
-      width: 100%
-    }
-  }
-
-  .history{
-    padding: 16px 0;
-  }
-  .message {
-    width: 100%;
-    margin: 20px 0;
-    transition: background-color 2s ease;
-  }
-  .default.joined {
-    margin-top: -10px;
-  }
-  .pull_left {
-    float: left;
-    margin-left: 5px;
-  }
-  .service .userpic_wrap {
-    padding-top: 10px;
-  }
-  .initials {
-    font-size: 20px;
-  }
-  .userpic4 {
-    background-color: #4f9cd9;
-    width: 34px;
-    height: 34px;
-  }
-  .userpic {
-    display: block;
-    border-radius: 50%;
-    overflow: hidden;
-  }
-  .userpic .initials {
-    display: block;
-    color: #fff;
-    text-align: center;
-    text-transform: uppercase;
-    user-select: none;
-  }
-  .default .body {
-    margin-left: 65px;
-    width: calc(100% - 65px);
-  }
-  .pull_right {
-    float: right;
-    margin-left: 15px;
-    margin-right: 5px;
-  }
-  .details {
-    color: rgba(0, 0, 0, 0.5);
-    font-size: 13px;
-  }
-  .default .from_name {
-    color: rgba(0, 0, 0, 0.6);
-    font-size: 14px;
-    padding-bottom: 5px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .clearfix:after {
-    content: " ";
-    visibility: hidden;
-    display: block;
-    height: 0;
-    clear: both;
-  }
-  .default .text{
-    font-size: 15px;
-  }
-  .default .media_wrap {
-    padding-bottom: 5px;
-  }
-  .wrap_icon_file{
-    width: 90px;
-    height: 90px;
-    display: flex;
-    justify-content: center;
-  }
- 
-  .media_wrap .clearfix .gif {
-    max-width: calc(100% - 65px);
-  }
-
-  .media_wrap .thumb {
-    object-position: center;
-    max-width: calc(100% - 65px);
-    height: auto;
-  }
-
-  .media_wrap .icon_file{
-    height: 90px;
-  }
-  .media_wrap .gif{
-    max-width: 150px;
-    max-height: 100px;
-  }
-  .media_wrap .icon_location{
-    width: 90px;
-    height: 90px;
-  }
-  .arrangedFlex{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-  .arrangedFlex .infor{
-    display: flex;
-    flex-direction: column;
-  }
-  .arrangedFlex .infor > * {
-    padding: 5px 10px 
-  }
-  .arrangedFlex .infor .title{
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.6);
-  }
-  .description{
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-    font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
-  }
-  .title{
-    font-family: "Segoe UI", "SegoeuiPc", "San Francisco", "Helvetica Neue", "Helvetica", "Lucida Grande", "Roboto", "Ubuntu", "Tahoma", Microsoft Sans Serif, Tahoma, Arial, sans-serif;
-    word-break: break-all;
-  }
-</style>
-
 <body>
-  <div class="container">
-    <div class="page_header">
-      <div class="header-content">
-        <h2>
-          WHO
-        </h2>
-      </div>
+  <div class="chat-header">
+    <div class="chat-header__chat-title">
+      WHO
     </div>
-    <div class="page_body">
-      <div class="history">
+  </div>
+  <div class="chat-content">
