@@ -84,6 +84,24 @@ body {
   text-align: right;
 }
 
+.switch-messages {
+  text-align: center;
+}
+
+.switch-messages__a {
+  font-size: 16px;
+  text-decoration: none !important;
+  color: #168acd;
+  width: 100%;
+  padding: 15px;
+  cursor: pointer;
+  display: block;
+}
+
+.switch-messages__a:hover {
+  background-color: #f5f7f8 !important;
+}
+
 @media only screen and (min-width: 320px) and (max-width: 600px) {
   .chat-header__chat-title {
     width: 100%;

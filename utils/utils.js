@@ -6,6 +6,16 @@ const sem = require('semaphore')(1);
 const { v4: uuidv4 } = require('uuid');
 
 const {
+  loadResources,
+  loadPhotosResource,
+  loadFilesResource,
+  loadStickersResource,
+  loadGifsResource,
+  loadLinksResource,
+  loadMP3sResource,
+} = require("../public/script");
+
+const {
   ROOT_FOLDER_NAME,
   SIZE_UNIT_LIST,
   SIZE_UNIT_CONVERT,
@@ -417,4 +427,44 @@ exports.showProgress = () => {
       progressInterval = null;
     }
   }, 1000);
+};
+
+exports.copyRequiredResourceToDest = () => {
+  fs.createReadStream('./templates/common/error-placeholder.png')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'resources/error-placeholder.png')));
+
+  fs.createReadStream('./templates/styles/message.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message.css')));
+
+  fs.createReadStream('./templates/styles/message-2.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-2.css')));
+
+  fs.createReadStream('./templates/styles/message-4.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-4.css')));
+
+  fs.createReadStream('./templates/styles/message-6.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-6.css')));
+
+  fs.createReadStream('./templates/styles/message-7.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-7.css')));
+
+  fs.createReadStream('./templates/styles/message-17.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-17.css')));
+
+  fs.createReadStream('./templates/styles/message-19.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-19.css')));
+
+  fs.createReadStream('./templates/styles/message--4.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message--4.css')));
+
+  const loadResourcesTemplateStr = 'const downloadedStatus = { succeed: 0, failed: 1, };' + '\n' +
+    loadPhotosResource.toString() + '\n' +
+    loadFilesResource.toString() + '\n' +
+    loadStickersResource.toString() + '\n' +
+    loadGifsResource.toString() + '\n' +
+    loadLinksResource.toString() + '\n' +
+    loadMP3sResource.toString() + '\n' +
+    '(' + loadResources.toString() + ')();';
+
+  this.writeToFile(loadResourcesTemplateStr, JS_DIR, "script.js");
 };

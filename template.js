@@ -179,7 +179,7 @@ process.on('exit', exportResourcesToFile);
 
 exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   // Text type
-  if (msgType === 1) {
+  if (msgType === 1 || msgType === 20) {
     if (typeof message === 'string') {
       return ejs.renderFile("./templates/messages/message-1.ejs", {
         message,
@@ -243,6 +243,7 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
 
     return ejs.renderFile("./templates/messages/message-6.ejs", {
       url: href,
+      fullUrl: href.includes('http') ? href : `http://${href}`,
       title: mediaTitle,
       description: description,
     });
@@ -302,6 +303,13 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
   else if (msgType === -4) {
     return ejs.renderFile('./templates/messages/message--4.ejs', {
       title: JSON.stringify(message),
+      time: convertTimeFormat(parseInt(sendDttm)),
+    });
+  }
+  // Create a new note
+  else if (msgType === -1909) {
+    return ejs.renderFile('./templates/messages/message--4.ejs', {
+      title: message['title'],
       time: convertTimeFormat(parseInt(sendDttm)),
     });
   }
