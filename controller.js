@@ -28,6 +28,7 @@ const initialContent = async (num=0) => {
 const AppendContent = async () => {
   let appendHtml = "", htmlString = "";
   let count = 0;
+  let isFirstMessageInPage = true;
 
   for (let i = 0; i < messages.length; i++) {
     if (i % 10 === 0) {
@@ -38,13 +39,15 @@ const AppendContent = async () => {
           prevMessages: `./index${count - 1 === 0 ? "" : count - 1}.html`,
         });
       }
+
+      isFirstMessageInPage = true;
     }
 
     const { dName, localDttm, fromUid, msgType } = messages[i];
     htmlString = await htmlTemplate(messages[i]);
 
     if (msgType !== -4 && msgType !== -1909) {
-      if (isJoinedUserBefore(messages[i - 1], messages[i])) {
+      if (isJoinedUserBefore(messages[i - 1], messages[i]) && !isFirstMessageInPage) {
         appendHtml += await ejs.renderFile('./templates/common/wrapper-joined.ejs', {
           time: convertTimeFormat(localDttm),
           msgBody: htmlString
@@ -63,6 +66,10 @@ const AppendContent = async () => {
     }
     else {
       appendHtml += htmlString;
+    }
+
+    if (isFirstMessageInPage) {
+      isFirstMessageInPage = false;
     }
 
     if (i % 10 === 9 && i < messages.length - 1) {
