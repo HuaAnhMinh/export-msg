@@ -99,7 +99,7 @@ const convertSizeOfFile = (size, i) => {
 };
 
 exports.isJoinedUserBefore = (prevObj, currentObj) => {
-  if (prevObj.msgType === 25) {
+  if (prevObj && prevObj.hasOwnProperty('msgType') && prevObj.msgType === 25) {
     return false;
   }
   

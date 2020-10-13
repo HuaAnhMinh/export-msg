@@ -11,7 +11,7 @@ const {
 } = require("./utils/utils");
 const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages5.json");
+const messages = require("./messages4.json");
 
 // Initial html,css file
 const initialContent = async (num=0) => {
@@ -25,7 +25,7 @@ const initialContent = async (num=0) => {
 
 // Append html, css file
 const AppendContent = async () => {
-  checkDownloadableContentExisted();
+  checkDownloadableContentExisted(messages);
 
   let appendHtml = "", htmlString = "";
   let count = 0;
