@@ -313,6 +313,12 @@ exports.htmlTemplate = async ({ msgType, msgId, message, sendDttm }) => {
       time: convertTimeFormat(parseInt(sendDttm)),
     });
   }
+  else if (msgType === 25) {
+    return ejs.renderFile('./templates/messages/message--4.ejs', {
+      title: message['description'],
+      time: convertTimeFormat(parseInt(sendDttm)),
+    });
+  }
   // Default
   else {
     return ejs.renderFile("./templates/messages/message-1.ejs", {

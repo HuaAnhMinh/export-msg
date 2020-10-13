@@ -98,8 +98,12 @@ const convertSizeOfFile = (size, i) => {
   return convertSizeOfFile(devidedResult, i + 1);
 };
 
-exports.isJoinedUserBefore = (peviousObj, currentObj) => {
-  if (peviousObj && currentObj.fromUid === peviousObj.fromUid) {
+exports.isJoinedUserBefore = (prevObj, currentObj) => {
+  if (prevObj.msgType === 25) {
+    return false;
+  }
+  
+  if (prevObj && currentObj.fromUid === prevObj.fromUid) {
     return true;
   }
   return false;
@@ -467,4 +471,16 @@ exports.copyRequiredResourceToDest = () => {
     '(' + loadResources.toString() + ')();';
 
   this.writeToFile(loadResourcesTemplateStr, JS_DIR, "script.js");
+};
+
+exports.checkDownloadableContentExisted = (messages=[]) => {
+  for (let i = 0; i < messages.length; ++i) {
+    const msgType = messages[i].msgType;
+
+    if (msgType === 2 || msgType === 4 || msgType === 6 ||
+        msgType === 7 || msgType === 17 || msgType === 19) {
+      downloadProgress.hasDownloadableContent = true;
+      break;
+    }
+  }
 };

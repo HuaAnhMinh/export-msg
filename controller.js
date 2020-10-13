@@ -1,6 +1,4 @@
 const ejs = require("ejs");
-const fs = require('fs');
-const path = require('path');
 
 const {
   writeToFile,
@@ -9,10 +7,11 @@ const {
   determinateAvatar,
   collectRawResourcesInfo,
   copyRequiredResourceToDest,
+  checkDownloadableContentExisted,
 } = require("./utils/utils");
 const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages3.json");
+const messages = require("./messages5.json");
 
 // Initial html,css file
 const initialContent = async (num=0) => {
@@ -26,6 +25,8 @@ const initialContent = async (num=0) => {
 
 // Append html, css file
 const AppendContent = async () => {
+  checkDownloadableContentExisted();
+
   let appendHtml = "", htmlString = "";
   let count = 0;
   let isFirstMessageInPage = true;
@@ -43,14 +44,18 @@ const AppendContent = async () => {
       isFirstMessageInPage = true;
     }
 
-    const { dName, localDttm, fromUid, msgType } = messages[i];
+    const { dName, sendDttm, fromUid, msgType } = messages[i];
     htmlString = await htmlTemplate(messages[i]);
 
-    if (msgType !== -4 && msgType !== -1909) {
+    if (
+      msgType !== -4 &&
+      msgType !== -1909 &&
+      msgType !== 25
+    ) {
       if (isJoinedUserBefore(messages[i - 1], messages[i]) && !isFirstMessageInPage) {
         appendHtml += await ejs.renderFile('./templates/common/wrapper-joined.ejs', {
-          time: convertTimeFormat(localDttm),
-          msgBody: htmlString
+          time: convertTimeFormat(parseInt(sendDttm)),
+          msgBody: htmlString,
         });
       }
       else {
@@ -58,9 +63,9 @@ const AppendContent = async () => {
         appendHtml += await ejs.renderFile('./templates/common/wrapper-not-joined.ejs', {
           shortenName,
           name,
-          time: convertTimeFormat(localDttm),
+          time: convertTimeFormat(parseInt(sendDttm)),
           color,
-          msgBody: htmlString
+          msgBody: htmlString,
         });
       }
     }
@@ -87,6 +92,10 @@ const AppendContent = async () => {
       appendHtml = "";
     }
   }
+
+  if (!downloadProgress.hasDownloadableContent) {
+    downloadProgress.percentage = 100;
+  };
 };
 
 exports.MainHandler = async () => {

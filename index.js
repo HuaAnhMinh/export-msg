@@ -10,6 +10,7 @@ global.downloadProgress = {
   downloadedItems: [],
   percentage: 0,
   downloadingItems: [],
+  hasDownloadableContent: false,
 };
 
 global.logs = '';
