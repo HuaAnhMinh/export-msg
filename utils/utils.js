@@ -68,14 +68,19 @@ exports.createExportDataDir = () => {
   fs.mkdirSync(path.join(fullExportPath, RESOURCES));
 };
 
-exports.writeToFile = (content, subDir, file) => {
-  const url = subDir ? path.join(fullExportPath, subDir, file) : path.join(fullExportPath, file)
-  let writeStream = fs.createWriteStream(url, {
-    flags: "a",
-  });
+exports.writeToFile = (content, subDir, file, isSync=false) => {
+  const url = subDir ? path.join(fullExportPath, subDir, file) : path.join(fullExportPath, file);
 
-  writeStream.write(content);
-  writeStream.end();
+  if (isSync) {
+    fs.appendFileSync(url, content);
+  }
+  else {
+    fs.appendFile(url, content, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
+  }
 }
 
 exports.detectFileName = (url) => {
@@ -439,6 +444,9 @@ exports.copyRequiredResourceToDest = () => {
 
   fs.createReadStream('./templates/styles/message.css')
   .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message.css')));
+
+  fs.createReadStream('./templates/styles/message-1.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-1.css')));
 
   fs.createReadStream('./templates/styles/message-2.css')
   .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-2.css')));

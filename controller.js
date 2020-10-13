@@ -19,8 +19,9 @@ const initialContent = async (num=0) => {
     messages.filter((msg) => msg.fromUid !== "0").length === messages.length;
   const header = isChatGroup ? TITLE_GROUP_CHAT : messages[0].dName;
   const htmlString = (await ejs.renderFile("./templates/common/initial.ejs")).replace("WHO", header);
+  //console.log(htmlString);
 
-  writeToFile(htmlString, "", `index${num === 0 ? '' : num}.html`);
+  writeToFile(htmlString, "", `index${num === 0 ? '' : num}.html`, true);
 };
 
 // Append html, css file
