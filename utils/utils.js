@@ -35,7 +35,8 @@ const {
   JS_DIR,
   RESOURCES,
   STICKER_DOWNLOAD_URL,
-  LOCATION_ICON
+  LOCATION_ICON,
+  STATUS
 } = require("./constants");
 
 
@@ -178,6 +179,7 @@ exports.collectRawResourcesInfo = (messages=[]) => {
       case 2:
         if (!resourcesInfo.hasOwnProperty(message.message.normalUrl)) {
           resourcesInfo[message.message.normalUrl] = {
+            msgType: 2,
             hasDownloaded: false,
             fileName: this.detectFileName(message.message.normalUrl),
           };
@@ -186,6 +188,7 @@ exports.collectRawResourcesInfo = (messages=[]) => {
       case 3:
         if (!resourcesInfo.hasOwnProperty(message.message.href)) {
           resourcesInfo[message.message.href] = {
+            msgType: 3,
             hasDownloaded: false,
             fileName: `${uuidv4()}.amr`,
           };
@@ -194,6 +197,7 @@ exports.collectRawResourcesInfo = (messages=[]) => {
         const stickerUrl = STICKER_DOWNLOAD_URL.replace("IdValue", message.message.id);
         if (!resourcesInfo.hasOwnProperty(stickerUrl)) {
           resourcesInfo[stickerUrl] = {
+            msgType: 4,
             hasDownloaded: false,
             fileName: `${uuidv4()}.png`,
           };
@@ -202,14 +206,17 @@ exports.collectRawResourcesInfo = (messages=[]) => {
       case 6:
         if (!resourcesInfo.hasOwnProperty(message.message.thumb)) {
           resourcesInfo[message.message.thumb] = {
+            msgType: 6,
             hasDownloaded: false,
             fileName: `${uuidv4()}.jpg`,
+            url: message.message.href,
           };
         }
         break;
       case 7:
         if (!resourcesInfo.hasOwnProperty(message.message.normalUrl)) {
           resourcesInfo[message.message.normalUrl] = {
+            msgType: 7,
             hasDownloaded: false,
             fileName: `${uuidv4()}.gif`,
           };
@@ -218,6 +225,7 @@ exports.collectRawResourcesInfo = (messages=[]) => {
       case 17:
         if (!resourcesInfo.hasOwnProperty(LOCATION_ICON)) {
           resourcesInfo[LOCATION_ICON] = {
+            msgType: 6,
             hasDownloaded: false,
             fileName: 'location.png',
           };
@@ -228,6 +236,7 @@ exports.collectRawResourcesInfo = (messages=[]) => {
         if (!resourcesInfo.hasOwnProperty(message.message.href)) {
           const size = parseInt(params.fileSize);
           resourcesInfo[message.message.href] = {
+            msgType: 19,
             hasDownloaded: false,
             size,
             fileName: message.message.title,
@@ -236,19 +245,23 @@ exports.collectRawResourcesInfo = (messages=[]) => {
           if (message.message.thumb) {
             if (!resourcesInfo.hasOwnProperty(message.message.thumb)) {
               resourcesInfo[message.message.thumb] = {
+                msgType: 6,
                 hasDownloaded: false,
                 fileName: this.detectFileName(message.message.thumb),
               };
             }
+            resourcesInfo[message.message.href].thumb = message.message.thumb;
           }
           else {
             const { extension, url } = this.determinateThumb(message.message.title);
             if (!resourcesInfo.hasOwnProperty(url)) {
               resourcesInfo[url] = {
+                msgType: 6,
                 hasDownloaded: false,
                 fileName: `${extension}.svg`,
               };
             }
+            resourcesInfo[message.message.href].thumb = url;
           }
         }
         break;
@@ -257,6 +270,218 @@ exports.collectRawResourcesInfo = (messages=[]) => {
     }
   }
 };
+
+// msgType === 2
+const photos = {};
+const savePhoto = async (msgType, url, fileName) => {
+  if (photos.hasOwnProperty(url)) {
+    return;
+  }
+
+  try {
+    const { updatedFileName, size } = await this.downloadExternalResource({ msgType, url, fileName });
+
+    const urlLocal = path.join(PHOTO_DIR, updatedFileName);
+
+    photos[url] = {
+      status: STATUS.succeed,
+      urlLocal,
+      fileName: updatedFileName,
+      size,
+    };
+  }
+  catch (error) {
+    console.log(`Error: ${error}`);
+    console.log(`MsgType: ${msgType}`);
+    console.log(`Error: ${url}`);
+  }
+};
+
+const mp3s = {};
+const saveMP3 = async (msgType, url, fileName) => {
+  if (mp3s.hasOwnProperty(url)) {
+    return;
+  }
+
+  try {
+    const { updatedFileName } = await this.downloadExternalResource({ msgType, url, fileName });
+
+    mp3s[url] = {
+      status: STATUS.succeed,
+      fileName: updatedFileName,
+      dir: MP3_DIR,
+      urlLocal: path.join(MP3_DIR, updatedFileName),
+    };
+  }
+  catch (error) {}
+};
+
+const stickers = {};
+const saveSticker = async (msgType, url, fileName) => {
+  if (stickers.hasOwnProperty(url)) {
+    return;
+  }
+
+  try {
+    const { updatedFileName } = await this.downloadExternalResource({ msgType, url, fileName });
+    const sizeOf = require('image-size');
+    const dimensions = sizeOf(path.join(fullExportPath, STICKER_DIR, updatedFileName));
+
+    stickers[url] = {
+      status: STATUS.succeed,
+      urlLocal: path.join(STICKER_DIR, updatedFileName),
+      width: dimensions.width,
+      height: dimensions.height,
+      dirValue: STICKER_DIR,
+      fileName: updatedFileName,
+    };
+  }
+  catch (error) {
+    console.log(`Error: ${error}`);
+    console.log(`MsgType: ${msgType}`);
+    console.log(`Error: ${url}`);
+  }
+};
+
+const links = {};
+const saveLink = async (msgType, url, thumb, fileName) => {
+  if (links.hasOwnProperty(url)) {
+    return;
+  }
+
+  try {
+    const { updatedFileName } = await this.downloadExternalResource({ msgType, url: thumb, fileName });
+
+    links[url] = {
+      status: STATUS.succeed,
+      dir: IMAGE_DIR,
+      fileName: updatedFileName,
+    };
+  }
+  catch (error) {
+    console.log(`Error: ${error}`);
+    console.log(`MsgType: ${msgType}`);
+    console.log(`Error: ${url}`);
+  }
+};
+
+const gifs = {};
+const saveGif = async (msgType, url, fileName) => {
+  if (gifs.hasOwnProperty(url)) {
+    return;
+  }
+
+  try {
+    const { updatedFileName } = await this.downloadExternalResource({ msgType, url, fileName });
+
+    gifs[url] = {
+      status: STATUS.succeed,
+      urlLocal: path.join(GIF_DIR, updatedFileName),
+      dir: GIF_DIR,
+      fileName: updatedFileName,
+    };
+  }
+  catch (error) {
+    console.log(`Error: ${error}`);
+    console.log(`MsgType: ${msgType}`);
+    console.log(`Error: ${url}`);
+  }
+};
+
+const files = {};
+const saveFile = async (msgType, url, fileName, thumb, fileNameThumb) => {
+  if (files.hasOwnProperty(url)) {
+    return;
+  }
+
+  try {
+    const { updatedFileName, size } = await this.downloadExternalResource({
+      msgType,
+      url,
+      fileName,
+    });
+
+    files[url] = {
+      status: STATUS.succeed,
+      fileNameFile: updatedFileName,
+      size,
+      urlLocal: path.join(FILE_DIR, updatedFileName),
+      dir: IMAGE_DIR,
+    };
+
+    if (!links.hasOwnProperty(thumb)) {
+      const { updatedFileName } = await this.downloadExternalResource({
+        msgType: 6,
+        url: thumb,
+        fileName: fileNameThumb,
+      });
+
+      links[thumb] = {
+        status: STATUS.succeed,
+        dir: IMAGE_DIR,
+        fileName: updatedFileName,
+      };
+    }
+
+    files[url].fileNameImg = links[thumb].fileName;
+  }
+  catch (error) {
+    console.log(`Error: ${error}`);
+    console.log(`MsgType: ${msgType}`);
+    console.log(`Error: ${url}`);
+  }
+};
+
+exports.downloadAllResources = () => {
+  for (let prop in resourcesInfo) {
+    const resource = resourcesInfo[prop];
+
+    switch (resource.msgType) {
+      case 2:
+        savePhoto(resource.msgType, prop, resource.fileName);
+        break;
+      case 3:
+        saveMP3(resource.msgType, prop, resource.fileName);
+        break;
+      case 4:
+        saveSticker(resource.msgType, prop, resource.fileName);
+        break;
+      case 6:
+        saveLink(resource.msgType, resource.url, prop, resource.fileName);
+        break;
+      case 7:
+        saveGif(resource.msgType, prop, resource.fileName);
+        break;
+      case 17:
+        this.downloadExternalResource({
+          msgType: 6,
+          url: prop,
+          fileName: resource.fileName
+        });
+        break;
+      case 19:
+        saveFile(resource.msgType, prop, resource.fileName, resource.thumb, resourcesInfo[resource.thumb].fileName);
+        break;
+      default:
+        throw new Error('Invalid message type for resource');
+    }
+  }
+};
+
+const exportResourcesToFile = () => {
+  console.log('Writing resources info to files...');
+
+  fs.writeFileSync(path.join(fullExportPath, '/resources/photos.js'), 'const photosResource = ' + JSON.stringify(photos));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/files.js'), 'const filesResource = ' + JSON.stringify(files));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/stickers.js'), 'const stickersResource = ' + JSON.stringify(stickers));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/gifs.js'), 'const gifsResource = ' + JSON.stringify(gifs));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/links.js'), 'const linksResource = ' + JSON.stringify(links));
+  fs.writeFileSync(path.join(fullExportPath, '/resources/mp3s.js'), 'const mp3sResource = ' + JSON.stringify(mp3s));
+  
+  //fs.writeFileSync(path.join(fullExportPath, '/resources/logs.txt'), logs);
+};
+
+process.on('exit', exportResourcesToFile);
 
 exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
   let subDir = "";
@@ -315,17 +540,7 @@ exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
   });
 };
 
-function _download(
-  url,
-  resolve,
-  reject,
-  cb=(totalItems, totalDownloadedItems, percentage) => {
-    logs = logs.concat('Total items: ' + totalItems);
-    logs = logs.concat('\nTotal downloaded items: ' + totalDownloadedItems);
-    logs = logs.concat('\nPercentage: ' + percentage);
-    logs = logs.concat('\n\n==================================================\n\n');
-  }
-) {
+function _download(url, resolve, reject) {
   const protocol = url.includes("http") && !url.includes("https")
     ? require("http")
     : require("https");
@@ -341,6 +556,7 @@ function _download(
         size += chunk.length;
 
         if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasOwnProperty('size')) {
+
           const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
           const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
 
@@ -351,14 +567,6 @@ function _download(
             }
             sem.leave();
           });
-
-          if (typeof cb === 'function') {
-            cb(
-              Array.from(Object.keys(resourcesInfo)).length,
-              downloadProgress.downloadedItems.length,
-              downloadProgress.percentage
-            );
-          }
         }
       });
   
@@ -389,19 +597,10 @@ function _download(
         if (!resourcesInfo[url].hasOwnProperty('size')) {
           resourcesInfo[url].size = size;
         }
-
-        logs = logs.concat(`${url}\n`);
-
-        if (typeof cb === 'function') {
-          cb(
-            Array.from(Object.keys(resourcesInfo)).length,
-            downloadProgress.downloadedItems.length,
-            downloadProgress.percentage
-          );
-        }
       });  
     }
     else if (response.statusCode === 404) {
+      setupForFailedDownloadResource(url);
       reject();
     }
     else if (response.headers.location) {
@@ -412,15 +611,29 @@ function _download(
       _download(response.headers.location, resolve);
     }
     else {
+      setupForFailedDownloadResource(url);
       reject();
     }
   })
   .end();
 }
 
+function setupForFailedDownloadResource(url) {
+  sem.take(() => {
+    downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
+    if (!resourcesInfo[url].hasDownloaded) {
+      resourcesInfo[url].hasDownloaded = true;
+    }
+    if (!downloadProgress.downloadedItems.includes(url)) {
+      downloadProgress.downloadedItems.push(url);
+    }
+    sem.leave();
+  });
+};
+
 function _logProgressToScreen() {
   console.clear();
-  console.log(`Downloaded items: ${downloadProgress.downloadedItems.length}`);
+  console.log(`Downloaded items: ${downloadProgress.downloadedItems.length}/${Array.from(Object.keys(resourcesInfo)).length}`);
   console.log(`Percentage: ${downloadProgress.percentage.toFixed(2)}%`);
 }
 
@@ -430,7 +643,7 @@ exports.showProgress = () => {
   let progressInterval = setInterval(() => {
     _logProgressToScreen();
 
-    if (downloadProgress.percentage >= 100) {
+    if (downloadProgress.downloadedItems.length >= Array.from(Object.keys(resourcesInfo)).length) {
       _logProgressToScreen();
       clearInterval(progressInterval);
       progressInterval = null;
