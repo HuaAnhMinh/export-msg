@@ -290,11 +290,7 @@ const savePhoto = async (msgType, url, fileName) => {
       size,
     };
   }
-  catch (error) {
-    console.log(`Error: ${error}`);
-    console.log(`MsgType: ${msgType}`);
-    console.log(`Error: ${url}`);
-  }
+  catch (error) { }
 };
 
 const mp3s = {};
@@ -313,7 +309,7 @@ const saveMP3 = async (msgType, url, fileName) => {
       urlLocal: path.join(MP3_DIR, updatedFileName),
     };
   }
-  catch (error) {}
+  catch (error) { }
 };
 
 const stickers = {};
@@ -336,11 +332,7 @@ const saveSticker = async (msgType, url, fileName) => {
       fileName: updatedFileName,
     };
   }
-  catch (error) {
-    console.log(`Error: ${error}`);
-    console.log(`MsgType: ${msgType}`);
-    console.log(`Error: ${url}`);
-  }
+  catch (error) { }
 };
 
 const links = {};
@@ -358,11 +350,7 @@ const saveLink = async (msgType, url, thumb, fileName) => {
       fileName: updatedFileName,
     };
   }
-  catch (error) {
-    console.log(`Error: ${error}`);
-    console.log(`MsgType: ${msgType}`);
-    console.log(`Error: ${url}`);
-  }
+  catch (error) { }
 };
 
 const gifs = {};
@@ -381,11 +369,7 @@ const saveGif = async (msgType, url, fileName) => {
       fileName: updatedFileName,
     };
   }
-  catch (error) {
-    console.log(`Error: ${error}`);
-    console.log(`MsgType: ${msgType}`);
-    console.log(`Error: ${url}`);
-  }
+  catch (error) { }
 };
 
 const files = {};
@@ -425,11 +409,7 @@ const saveFile = async (msgType, url, fileName, thumb, fileNameThumb) => {
 
     files[url].fileNameImg = links[thumb].fileName;
   }
-  catch (error) {
-    console.log(`Error: ${error}`);
-    console.log(`MsgType: ${msgType}`);
-    console.log(`Error: ${url}`);
-  }
+  catch (error) { }
 };
 
 exports.downloadAllResources = () => {
@@ -555,47 +535,56 @@ function _download(url, resolve, reject) {
         data.push(chunk);
         size += chunk.length;
 
-        if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasOwnProperty('size')) {
-
-          const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
-          const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-
-          sem.take(() => {
-            downloadProgress.percentage += (innerPercentage * totalPercentage) / 100;
-            if (downloadProgress.percentage > 100) {
-              downloadProgress.percentage = 100;
-            }
-            sem.leave();
-          });
+        if (downloadProgress.downloadedItems.length >= Array.from(Object.keys(resourcesInfo)).length) {
+          console.log(url);
         }
+
+        // if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasOwnProperty('size')) {
+
+        //   const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
+        //   const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
+
+        //   sem.take(() => {
+        //     downloadProgress.percentage += (innerPercentage * totalPercentage) / 100;
+        //     if (downloadProgress.percentage > 100) {
+        //       downloadProgress.percentage = 100;
+        //     }
+        //     sem.leave();
+        //   });
+        // }
       });
   
       response.on('end', function() {
         resolve(data, size);
         
-        if (resourcesInfo.hasOwnProperty(url) && !resourcesInfo[url].hasOwnProperty('size')) {
+        // if (resourcesInfo.hasOwnProperty(url) && !resourcesInfo[url].hasOwnProperty('size')) {
+        //   sem.take(() => {
+        //     downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
+        //     if (downloadProgress.percentage > 100) {
+        //       downloadProgress.percentage = 100;
+        //     }
+        //     sem.leave();
+        //   });
+        // }
+
+        if (resourcesInfo.hasOwnProperty(url)) {
           sem.take(() => {
             downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-            if (downloadProgress.percentage > 100) {
-              downloadProgress.percentage = 100;
+
+            if (!downloadProgress.downloadedItems.includes(url)) {
+              downloadProgress.downloadedItems.push(url);
             }
+            
             sem.leave();
           });
-        }
 
-        sem.take(() => {
-          if (!downloadProgress.downloadedItems.includes(url)) {
-            downloadProgress.downloadedItems.push(url);
+          if (!resourcesInfo[url].hasDownloaded) {
+            resourcesInfo[url].hasDownloaded = true;
           }
-          sem.leave();
-        });
 
-        if (!resourcesInfo[url].hasDownloaded) {
-          resourcesInfo[url].hasDownloaded = true;
-        }
-
-        if (!resourcesInfo[url].hasOwnProperty('size')) {
-          resourcesInfo[url].size = size;
+          if (!resourcesInfo[url].hasOwnProperty('size')) {
+            resourcesInfo[url].size = size;
+          }
         }
       });  
     }
@@ -614,6 +603,10 @@ function _download(url, resolve, reject) {
       setupForFailedDownloadResource(url);
       reject();
     }
+  })
+  .on('error', (error) => {
+    setupForFailedDownloadResource(url);
+    reject();
   })
   .end();
 }
