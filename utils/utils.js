@@ -456,7 +456,7 @@ exports.downloadAllResources = () => {
         this.downloadExternalResource({
           msgType: 6,
           url: prop,
-          fileName: resource.fileName
+          fileName: resource.fileName,
         });
         break;
       case 19:

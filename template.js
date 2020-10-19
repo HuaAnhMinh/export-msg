@@ -1,8 +1,5 @@
 const ejs = require("ejs");
-const path = require('path');
 const {
-  downloadExternalResource,
-  determinateThumb,
   convertTimeFormat,
 } = require("./utils/utils");
 const {
