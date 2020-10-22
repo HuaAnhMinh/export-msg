@@ -15,7 +15,8 @@ const {
 
 const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages2.json");
+const messages = require("./messages5.json");
+const { clearProgress, updateProgress } = require("./utils/progress");
 
 // Initial html,css file
 const initialContent = async (num=0) => {
@@ -97,8 +98,9 @@ const AppendContent = async () => {
     }
   }
 
-  if (!downloadProgress.hasDownloadableContent) {
-    downloadProgress.percentage = 100;
+  if (!hasDownloadableContent) {
+    clearProgress();
+    updateProgress({ percentage: 100 });
   };
 };
 
@@ -106,7 +108,7 @@ exports.MainHandler = async () => {
   copyRequiredResourceToDest();
   collectResourcesInfo(messages);
   await AppendContent();
-  if (downloadProgress.hasDownloadableContent) {
+  if (hasDownloadableContent) {
     getAllResources();
   }
 };

@@ -1,5 +1,5 @@
 const { Transform } = require('stream');
-const sem = require('semaphore')(1);
+const { updateProgress } = require('./progress');
 
 const downloadResource = (url='') => {
   return new Promise((resolve, reject) => {
@@ -18,23 +18,17 @@ const download = (url, resolve, reject) => {
         data.push(chunk);
 
         if (resourcesInfo[url].hasOwnProperty('size')) {
-          sem.take(() => {
-            const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
-            const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-  
-            downloadProgress.percentage += (innerPercentage * totalPercentage) / 100;
-            sem.leave();
-          });
+          const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
+          const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
+
+          updateProgress({ percentage: (innerPercentage * totalPercentage) / 100 });
         }
       });
 
       response.on('end', () => {
-        sem.take(() => {
-          if (!resourcesInfo[url].hasOwnProperty('size')) {
-            downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-          }
-          downloadProgress.downloadedItems.push(url);
-          sem.leave();
+        updateProgress({
+          url,
+          percentage: !resourcesInfo[url].hasOwnProperty('size') ? (1 / Array.from(Object.keys(resourcesInfo)).length) * 100 : undefined
         });
 
         resolve({ url, data });
@@ -59,12 +53,10 @@ const download = (url, resolve, reject) => {
 };
 
 const handleErrorWhileDownloading = (reject, url, error) => {
-  sem.take(() => {
-    downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-    downloadProgress.downloadedItems.push(url);
-    sem.leave();
+  updateProgress({
+    url,
+    percentage: (1 / Array.from(Object.keys(resourcesInfo)).length) * 100
   });
-
   reject({ url, error });
 };
 

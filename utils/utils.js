@@ -194,7 +194,7 @@ exports.checkDownloadableContentExisted = (messages=[]) => {
 
     if (msgType === 2 || msgType === 4 || msgType === 6 ||
         msgType === 7 || msgType === 17 || msgType === 19) {
-      downloadProgress.hasDownloadableContent = true;
+      hasDownloadableContent = true;
       break;
     }
   }
