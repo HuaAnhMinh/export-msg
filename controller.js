@@ -5,14 +5,17 @@ const {
   isJoinedUserBefore,
   convertTimeFormat,
   determinateAvatar,
-  collectRawResourcesInfo,
-  copyRequiredResourceToDest,
   checkDownloadableContentExisted,
-  downloadAllResources,
+  copyRequiredResourceToDest
 } = require("./utils/utils");
+
+const {
+  collectResourcesInfo, getAllResources,
+} = require('./utils/resources');
+
 const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages5.json");
+const messages = require("./messages4.json");
 
 // Initial html,css file
 const initialContent = async (num=0) => {
@@ -101,7 +104,9 @@ const AppendContent = async () => {
 
 exports.MainHandler = async () => {
   copyRequiredResourceToDest();
-  collectRawResourcesInfo(messages);
+  collectResourcesInfo(messages);
   await AppendContent();
-  downloadAllResources();
+  if (downloadProgress.hasDownloadableContent) {
+    getAllResources();
+  }
 };

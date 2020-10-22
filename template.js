@@ -7,6 +7,10 @@ const {
   LOCATION_ICON,
   GOOGLE_MAP,
   IMAGE_DIR,
+  PHOTO_DIR,
+  STICKER_DIR,
+  GIF_DIR,
+  FILE_DIR,
 } = require("./utils/constants");
 
 exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
@@ -29,6 +33,9 @@ exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
 
     return ejs.renderFile("./templates/messages/message-2.ejs", {
       url,
+      dir: PHOTO_DIR,
+      fileName: resourcesInfo[url].fileName,
+      title,
     });
   }
   // Sticker type
@@ -38,6 +45,8 @@ exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
 
     return stringHtml = await ejs.renderFile("./templates/messages/message-4.ejs", {
       url,
+      dir: STICKER_DIR,
+      fileName: resourcesInfo[url].fileName,
     });
   }
   // Link type
@@ -46,8 +55,9 @@ exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
     const mediaTitle = (JSON.parse(params)).mediaTitle;
 
     return ejs.renderFile("./templates/messages/message-6.ejs", {
-      url: href,
       fullUrl: href.includes('http') ? href : `http://${href}`,
+      dir: IMAGE_DIR,
+      fileName: resourcesInfo[thumb].fileName,
       title: mediaTitle,
       description: description,
     });
@@ -58,6 +68,8 @@ exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
 
     return ejs.renderFile("./templates/messages/message-7.ejs", {
       url,
+      dir: GIF_DIR,
+      fileName: resourcesInfo[url].fileName,
     });
   }
   // Location type
@@ -81,7 +93,11 @@ exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
     return ejs.renderFile("./templates/messages/message-19.ejs", {
       url: href,
       title,
-      imgClass: thumb ? 'thumb' : 'img'
+      thumbDir: IMAGE_DIR,
+      fileDir: FILE_DIR,
+      imgClass: thumb ? 'thumb' : 'img',
+      thumbName: resourcesInfo[resourcesInfo[href].thumb].fileName,
+      fileName: resourcesInfo[href].fileName,
     });
   }
   // Add new member

@@ -1,15 +1,15 @@
-const { createExportDataDir, createRootExportPath, showProgress } = require("./utils/utils");
-// const { ROOT_EXPORT_PATH } = require("./utils/constants");
+const { createExportDataDir, createRootExportPath } = require("./utils/utils");
 const { MainHandler } = require("./controller");
+const { showProgress } = require("./utils/logs");
 
 global.fullExportPath = "";
 global.rootExportPath = "";
 
 global.resourcesInfo = {};
+
 global.downloadProgress = {
   downloadedItems: [],
   percentage: 0,
-  downloadingItems: [],
   hasDownloadableContent: false,
 };
 
