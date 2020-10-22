@@ -5,7 +5,15 @@ const { v4: uuidv4 } = require('uuid');
 const { downloadResource } = require('./download');
 const { determinateThumb, detectFileName } = require('./utils');
 
-const { STICKER_DOWNLOAD_URL, PHOTO_DIR, STICKER_DIR, IMAGE_DIR, GIF_DIR, FILE_DIR } = require('./constants');
+const {
+  STICKER_DOWNLOAD_URL,
+  PHOTO_DIR,
+  STICKER_DIR,
+  IMAGE_DIR,
+  GIF_DIR,
+  FILE_DIR,
+  LOCATION_ICON
+} = require('./constants');
 
 const collectResourcesInfo = (messages=[]) => {
   for (let i = 0; i < messages.length; ++i) {

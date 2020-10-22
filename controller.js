@@ -15,7 +15,7 @@ const {
 
 const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages4.json");
+const messages = require("./messages2.json");
 
 // Initial html,css file
 const initialContent = async (num=0) => {
