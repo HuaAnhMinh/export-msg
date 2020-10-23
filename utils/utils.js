@@ -1,19 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-const { Transform } = require("stream");
 const crypto = require("crypto");
-const sem = require('semaphore')(1);
-const { v4: uuidv4 } = require('uuid');
-
-const {
-  loadResources,
-  loadPhotosResource,
-  loadFilesResource,
-  loadStickersResource,
-  loadGifsResource,
-  loadLinksResource,
-  loadMP3sResource,
-} = require("../public/script");
 
 const {
   ROOT_FOLDER_NAME,
@@ -33,9 +20,7 @@ const {
   FILE_DIR,
   STYLES_DIR,
   JS_DIR,
-  RESOURCES,
-  STICKER_DOWNLOAD_URL,
-  LOCATION_ICON
+  RESOURCES
 } = require("./constants");
 
 
@@ -171,273 +156,6 @@ const genUniqueKey = (url, path) => {
 }
 exports.genUniqueKey = genUniqueKey;
 
-exports.collectRawResourcesInfo = (messages=[]) => {
-  for (let i = 0; i < messages.length; ++i) {
-    const message = messages[i];
-    switch (message.msgType) {
-      case 2:
-        if (!resourcesInfo.hasOwnProperty(message.message.normalUrl)) {
-          resourcesInfo[message.message.normalUrl] = {
-            hasDownloaded: false,
-            fileName: this.detectFileName(message.message.normalUrl),
-          };
-        }
-        break;
-      case 3:
-        if (!resourcesInfo.hasOwnProperty(message.message.href)) {
-          resourcesInfo[message.message.href] = {
-            hasDownloaded: false,
-            fileName: `${uuidv4()}.amr`,
-          };
-        }
-      case 4:
-        const stickerUrl = STICKER_DOWNLOAD_URL.replace("IdValue", message.message.id);
-        if (!resourcesInfo.hasOwnProperty(stickerUrl)) {
-          resourcesInfo[stickerUrl] = {
-            hasDownloaded: false,
-            fileName: `${uuidv4()}.png`,
-          };
-        }
-        break;
-      case 6:
-        if (!resourcesInfo.hasOwnProperty(message.message.thumb)) {
-          resourcesInfo[message.message.thumb] = {
-            hasDownloaded: false,
-            fileName: `${uuidv4()}.jpg`,
-          };
-        }
-        break;
-      case 7:
-        if (!resourcesInfo.hasOwnProperty(message.message.normalUrl)) {
-          resourcesInfo[message.message.normalUrl] = {
-            hasDownloaded: false,
-            fileName: `${uuidv4()}.gif`,
-          };
-        }
-        break;
-      case 17:
-        if (!resourcesInfo.hasOwnProperty(LOCATION_ICON)) {
-          resourcesInfo[LOCATION_ICON] = {
-            hasDownloaded: false,
-            fileName: 'location.png',
-          };
-        }
-        break;
-      case 19:
-        const params = JSON.parse(message.message.params);
-        if (!resourcesInfo.hasOwnProperty(message.message.href)) {
-          const size = parseInt(params.fileSize);
-          resourcesInfo[message.message.href] = {
-            hasDownloaded: false,
-            size,
-            fileName: message.message.title,
-          };
-
-          if (message.message.thumb) {
-            if (!resourcesInfo.hasOwnProperty(message.message.thumb)) {
-              resourcesInfo[message.message.thumb] = {
-                hasDownloaded: false,
-                fileName: this.detectFileName(message.message.thumb),
-              };
-            }
-          }
-          else {
-            const { extension, url } = this.determinateThumb(message.message.title);
-            if (!resourcesInfo.hasOwnProperty(url)) {
-              resourcesInfo[url] = {
-                hasDownloaded: false,
-                fileName: `${extension}.svg`,
-              };
-            }
-          }
-        }
-        break;
-      default:
-        break;
-    }
-  }
-};
-
-exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
-  let subDir = "";
-
-  switch (msgType) {
-    case 2:
-      subDir += PHOTO_DIR;
-      break;
-    case 3:
-      subDir += MP3_DIR;
-      break;
-    case 4:
-      subDir += STICKER_DIR;
-      break;
-    case 6:
-      subDir += IMAGE_DIR;
-      break;
-    case 7:
-      subDir += GIF_DIR;
-      break;
-    case 18:
-      subDir += MP4_DIR;
-      break;
-    case 19:
-      subDir += FILE_DIR;
-      break;
-
-    default:
-  }
-
-  return new Promise((_resolve, _reject) => {
-    if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasDownloaded) {
-      return _resolve({
-        updatedFileName: resourcesInfo[url].fileName,
-        size: convertSizeOfFile(resourcesInfo[url].size),
-      });
-    }
-
-    function resolve(data, size) {
-      fs.writeFileSync(
-        path.join(fullExportPath, subDir, fileName),
-        data.read()
-      );
-
-      _resolve({
-        updatedFileName: fileName,
-        size: convertSizeOfFile(size, 0)
-      });
-    }
-
-    function reject() {
-      _reject();
-    }
-
-    _download(url, resolve, reject);
-  });
-};
-
-function _download(
-  url,
-  resolve,
-  reject,
-  cb=(totalItems, totalDownloadedItems, percentage) => {
-    logs = logs.concat('Total items: ' + totalItems);
-    logs = logs.concat('\nTotal downloaded items: ' + totalDownloadedItems);
-    logs = logs.concat('\nPercentage: ' + percentage);
-    logs = logs.concat('\n\n==================================================\n\n');
-  }
-) {
-  const protocol = url.includes("http") && !url.includes("https")
-    ? require("http")
-    : require("https");
-
-  let size = 0;
-
-  protocol.request(url, function(response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      let data = new Transform();
-
-      response.on('data', function(chunk) {
-        data.push(chunk);
-        size += chunk.length;
-
-        if (resourcesInfo.hasOwnProperty(url) && resourcesInfo[url].hasOwnProperty('size')) {
-          const innerPercentage = (chunk.length / resourcesInfo[url].size) * 100;
-          const totalPercentage = (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-
-          sem.take(() => {
-            downloadProgress.percentage += (innerPercentage * totalPercentage) / 100;
-            if (downloadProgress.percentage > 100) {
-              downloadProgress.percentage = 100;
-            }
-            sem.leave();
-          });
-
-          if (typeof cb === 'function') {
-            cb(
-              Array.from(Object.keys(resourcesInfo)).length,
-              downloadProgress.downloadedItems.length,
-              downloadProgress.percentage
-            );
-          }
-        }
-      });
-  
-      response.on('end', function() {
-        resolve(data, size);
-        
-        if (resourcesInfo.hasOwnProperty(url) && !resourcesInfo[url].hasOwnProperty('size')) {
-          sem.take(() => {
-            downloadProgress.percentage += (1 / Array.from(Object.keys(resourcesInfo)).length) * 100;
-            if (downloadProgress.percentage > 100) {
-              downloadProgress.percentage = 100;
-            }
-            sem.leave();
-          });
-        }
-
-        sem.take(() => {
-          if (!downloadProgress.downloadedItems.includes(url)) {
-            downloadProgress.downloadedItems.push(url);
-          }
-          sem.leave();
-        });
-
-        if (!resourcesInfo[url].hasDownloaded) {
-          resourcesInfo[url].hasDownloaded = true;
-        }
-
-        if (!resourcesInfo[url].hasOwnProperty('size')) {
-          resourcesInfo[url].size = size;
-        }
-
-        logs = logs.concat(`${url}\n`);
-
-        if (typeof cb === 'function') {
-          cb(
-            Array.from(Object.keys(resourcesInfo)).length,
-            downloadProgress.downloadedItems.length,
-            downloadProgress.percentage
-          );
-        }
-      });  
-    }
-    else if (response.statusCode === 404) {
-      reject();
-    }
-    else if (response.headers.location) {
-      if (resourcesInfo.hasOwnProperty(url)) {
-        resourcesInfo[response.headers.location] = { ...resourcesInfo[url] };
-        delete resourcesInfo[url];
-      }
-      _download(response.headers.location, resolve);
-    }
-    else {
-      reject();
-    }
-  })
-  .end();
-}
-
-function _logProgressToScreen() {
-  console.clear();
-  console.log(`Downloaded items: ${downloadProgress.downloadedItems.length}`);
-  console.log(`Percentage: ${downloadProgress.percentage.toFixed(2)}%`);
-}
-
-exports.showProgress = () => {
-  _logProgressToScreen();
-
-  let progressInterval = setInterval(() => {
-    _logProgressToScreen();
-
-    if (downloadProgress.percentage >= 100) {
-      _logProgressToScreen();
-      clearInterval(progressInterval);
-      progressInterval = null;
-    }
-  }, 1000);
-};
-
 exports.copyRequiredResourceToDest = () => {
   fs.createReadStream('./templates/common/error-placeholder.png')
   .pipe(fs.createWriteStream(path.join(fullExportPath, 'resources/error-placeholder.png')));
@@ -468,17 +186,6 @@ exports.copyRequiredResourceToDest = () => {
 
   fs.createReadStream('./templates/styles/message--4.css')
   .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message--4.css')));
-
-  const loadResourcesTemplateStr = 'const downloadedStatus = { succeed: 0, failed: 1, };' + '\n' +
-    loadPhotosResource.toString() + '\n' +
-    loadFilesResource.toString() + '\n' +
-    loadStickersResource.toString() + '\n' +
-    loadGifsResource.toString() + '\n' +
-    loadLinksResource.toString() + '\n' +
-    loadMP3sResource.toString() + '\n' +
-    '(' + loadResources.toString() + ')();';
-
-  this.writeToFile(loadResourcesTemplateStr, JS_DIR, "script.js");
 };
 
 exports.checkDownloadableContentExisted = (messages=[]) => {
@@ -487,7 +194,7 @@ exports.checkDownloadableContentExisted = (messages=[]) => {
 
     if (msgType === 2 || msgType === 4 || msgType === 6 ||
         msgType === 7 || msgType === 17 || msgType === 19) {
-      downloadProgress.hasDownloadableContent = true;
+      hasDownloadableContent = true;
       break;
     }
   }

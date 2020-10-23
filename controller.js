@@ -5,13 +5,18 @@ const {
   isJoinedUserBefore,
   convertTimeFormat,
   determinateAvatar,
-  collectRawResourcesInfo,
-  copyRequiredResourceToDest,
   checkDownloadableContentExisted,
+  copyRequiredResourceToDest
 } = require("./utils/utils");
+
+const {
+  collectResourcesInfo, getAllResources,
+} = require('./utils/resources');
+
 const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages4.json");
+const messages = require("./messages5.json");
+const { clearProgress, updateProgress } = require("./utils/progress");
 
 // Initial html,css file
 const initialContent = async (num=0) => {
@@ -19,7 +24,6 @@ const initialContent = async (num=0) => {
     messages.filter((msg) => msg.fromUid !== "0").length === messages.length;
   const header = isChatGroup ? TITLE_GROUP_CHAT : messages[0].dName;
   const htmlString = (await ejs.renderFile("./templates/common/initial.ejs")).replace("WHO", header);
-  //console.log(htmlString);
 
   writeToFile(htmlString, "", `index${num === 0 ? '' : num}.html`, true);
 };
@@ -94,13 +98,17 @@ const AppendContent = async () => {
     }
   }
 
-  if (!downloadProgress.hasDownloadableContent) {
-    downloadProgress.percentage = 100;
+  if (!hasDownloadableContent) {
+    clearProgress();
+    updateProgress({ percentage: 100 });
   };
 };
 
 exports.MainHandler = async () => {
   copyRequiredResourceToDest();
-  collectRawResourcesInfo(messages);
+  collectResourcesInfo(messages);
   await AppendContent();
+  if (hasDownloadableContent) {
+    getAllResources();
+  }
 };
