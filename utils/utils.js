@@ -186,6 +186,9 @@ exports.copyRequiredResourceToDest = () => {
 
   fs.createReadStream('./templates/styles/message--4.css')
   .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message--4.css')));
+
+  fs.createReadStream('./public/script.js')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'js/script.js')));
 };
 
 exports.checkDownloadableContentExisted = (messages=[]) => {
