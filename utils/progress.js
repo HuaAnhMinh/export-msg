@@ -30,6 +30,9 @@ const updateProgress = (updatedProgress={ percentage: 0, url: '' }) => {
       showProgress();
       timeLastShowProgress = current;
     }
+    if (_downloadedItems.length === Array.from(Object.keys(resourcesInfo)).length) {
+      process.exit(0);
+    }
     sem.leave();
   });
 };
