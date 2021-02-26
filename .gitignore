@@ -7,3 +7,4 @@ output/**
 publish
 .firebase
 temp
+.DS_Store
