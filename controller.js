@@ -1,64 +1,114 @@
 const ejs = require("ejs");
+
 const {
   writeToFile,
   isJoinedUserBefore,
   convertTimeFormat,
   determinateAvatar,
+  checkDownloadableContentExisted,
+  copyRequiredResourceToDest
 } = require("./utils/utils");
-const { INITIAL_CSS, TITLE_GROUP_CHAT, CSS_DIR, JS_DIR } = require("./utils/constants");
-const { onMouseOver } = require("./public/script");
+
+const {
+  collectResourcesInfo, getAllResources,
+} = require('./utils/resources');
+
+const { TITLE_GROUP_CHAT } = require("./utils/constants");
 const { htmlTemplate } = require("./template");
-const messages = require("./messages.json");
+const messages = require("./messages4.json");
+const { clearProgress, updateProgress } = require("./utils/progress");
 
 // Initial html,css file
-const initialContent = async () => {
+const initialContent = async (num=0) => {
   const isChatGroup =
     messages.filter((msg) => msg.fromUid !== "0").length === messages.length;
   const header = isChatGroup ? TITLE_GROUP_CHAT : messages[0].dName;
-  const htmlString = (
-    await ejs.renderFile("./templates/common/initial.ejs")
-  ).replace("WHO", header);
+  const htmlString = (await ejs.renderFile("./templates/common/initial.ejs")).replace("WHO", header);
 
-  writeToFile(htmlString, "", "index.html");
-  writeToFile(INITIAL_CSS, CSS_DIR, "style.css");
-  writeToFile("var displayList = {};" + onMouseOver.toString(), JS_DIR, "script.js");
+  writeToFile(htmlString, "", `index${num === 0 ? '' : num}.html`, true);
 };
+
 // Append html, css file
 const AppendContent = async () => {
-  let appendHtml = "";
+  checkDownloadableContentExisted(messages);
+
+  let appendHtml = "", htmlString = "";
+  let count = 0;
+  let isFirstMessageInPage = true;
 
   for (let i = 0; i < messages.length; i++) {
-    const { dName, localDttm, fromUid } = messages[i];
-    const htmlString = await htmlTemplate(messages[i]);
+    if (i % 10 === 0) {
+      await initialContent(count);
 
-    if (isJoinedUserBefore(messages[i - 1], messages[i])) {
-      const wrapInitMsg = await ejs.renderFile(
-        "./templates/common/initial-msg-joined.ejs",
-        { time: convertTimeFormat(localDttm) }
-      );
-      const wrapEndMsg = await ejs.renderFile("./templates/common/end-msg.ejs");
+      if (count > 0) {
+        appendHtml += await ejs.renderFile('./templates/common/prev-messages.ejs', {
+          prevMessages: `./index${count - 1 === 0 ? "" : count - 1}.html`,
+        });
+      }
 
-      appendHtml += wrapInitMsg + htmlString + wrapEndMsg;
-    } else {
-      const { shortenName, name, color } = determinateAvatar(fromUid, dName);
-      let wrapInitMsg = (
-        await ejs.renderFile("./templates/common/initial-msg.ejs", {
+      isFirstMessageInPage = true;
+    }
+
+    const { dName, sendDttm, fromUid, msgType } = messages[i];
+    htmlString = await htmlTemplate(messages[i]);
+
+    if (
+      msgType !== -4 &&
+      msgType !== -1909 &&
+      msgType !== 25
+    ) {
+      if (isJoinedUserBefore(messages[i - 1], messages[i]) && !isFirstMessageInPage) {
+        appendHtml += await ejs.renderFile('./templates/common/wrapper-joined.ejs', {
+          time: convertTimeFormat(parseInt(sendDttm)),
+          msgBody: htmlString,
+        });
+      }
+      else {
+        const { shortenName, name, color } = determinateAvatar(fromUid, dName);
+        appendHtml += await ejs.renderFile('./templates/common/wrapper-not-joined.ejs', {
           shortenName,
           name,
-          time: convertTimeFormat(localDttm),
-          color
-        })
-      )
-      const wrapEndMsg = await ejs.renderFile("./templates/common/end-msg.ejs");
+          time: convertTimeFormat(parseInt(sendDttm)),
+          color,
+          msgBody: htmlString,
+        });
+      }
+    }
+    else {
+      appendHtml += htmlString;
+    }
 
-      appendHtml += wrapInitMsg + htmlString + wrapEndMsg;
+    if (isFirstMessageInPage) {
+      isFirstMessageInPage = false;
+    }
+
+    if (i % 10 === 9 && i < messages.length - 1) {
+      appendHtml += await ejs.renderFile("./templates/common/next-messages.ejs", {
+        nextMessages: `./index${count + 1}.html`,
+      });
+      appendHtml += await ejs.renderFile("./templates/common/end.ejs");
+      writeToFile(appendHtml, "", `/index${count === 0 ? '' : count}.html`);
+      ++count;
+      appendHtml = "";
+    }
+    else if (i === messages.length - 1) {
+      appendHtml += await ejs.renderFile("./templates/common/end.ejs");
+      writeToFile(appendHtml, "", `/index${count === 0 ? '' : count}.html`);
+      appendHtml = "";
     }
   }
-  appendHtml += await ejs.renderFile("./templates/common/end.ejs");
-  writeToFile(appendHtml, "", "/index.html");
+
+  if (!hasDownloadableContent) {
+    clearProgress();
+    updateProgress({ percentage: 100 });
+  };
 };
 
 exports.MainHandler = async () => {
-  await initialContent();
+  copyRequiredResourceToDest();
+  collectResourcesInfo(messages);
   await AppendContent();
+  if (hasDownloadableContent) {
+    getAllResources();
+  }
 };

@@ -1,0 +1,14 @@
+.message--4 {
+  margin-right: 80px;
+}
+
+.message--4__divider {
+  border-color: rgb(248, 247, 247) !important;
+}
+
+.message--4__message {
+  text-align: center;
+  color: #70777b;
+  font-size: 12px;
+  margin-bottom: 20px;
+}

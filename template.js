@@ -1,140 +1,84 @@
 const ejs = require("ejs");
-const path = require('path');
 const {
-  detectFileName,
-  downloadExternalResource,
-  determinateThumb,
+  convertTimeFormat,
 } = require("./utils/utils");
 const {
   STICKER_DOWNLOAD_URL,
   LOCATION_ICON,
   GOOGLE_MAP,
-  PHOTO_DIR,
   IMAGE_DIR,
-  MP3_DIR,
+  PHOTO_DIR,
   STICKER_DIR,
   GIF_DIR,
-  MP4_DIR,
   FILE_DIR,
 } = require("./utils/constants");
 
-exports.htmlTemplate = async ({ msgType, msgId, message }) => {
+exports.htmlTemplate = async ({ msgType, message, sendDttm }) => {
   // Text type
-  if (msgType === 1) {
-    return ejs.renderFile("./templates/msg-1.ejs", {
-      message,
-    });
+  if (msgType === 1 || msgType === 20) {
+    if (typeof message === 'string') {
+      return ejs.renderFile("./templates/messages/message-1.ejs", {
+        message,
+      });
+    }
+    else {
+      return ejs.renderFile('./templates/messages/message-1.ejs', {
+        message: message.title,
+      });
+    }
   }
   // Photo type
   else if (msgType === 2) {
     const { normalUrl: url = "", title = "" } = message;
-    let fileName = detectFileName(url);
-    const { updatedFileName, size } = await downloadExternalResource({ msgType, url, fileName });
-    fileName = updatedFileName;
-    const urlLocal = path.join(PHOTO_DIR, fileName);
 
-    return ejs.renderFile("./templates/msg-2.ejs", {
-      url: urlLocal,
-      fileName,
+    return ejs.renderFile("./templates/messages/message-2.ejs", {
+      url,
+      dir: PHOTO_DIR,
+      fileName: resourcesInfo[url].fileName,
       title,
-      size,
-      dir: PHOTO_DIR
-    });
-  }
-  // Mp3 type
-  else if (msgType === 3) {
-    const { href: url } = message;
-    let fileName = `${msgId}.amr`;
-
-    const { updatedFileName } = await downloadExternalResource({ msgType, url, fileName });
-    fileName = updatedFileName;
-    const urlLocal = path.join(MP3_DIR, fileName);
-
-    return ejs.renderFile("./templates/msg-3.ejs", {
-      url: urlLocal,
-      fileName,
-      dir: MP3_DIR
     });
   }
   // Sticker type
   else if (msgType === 4) {
-    const sizeOf = require("image-size");
     const { id } = message;
     const url = STICKER_DOWNLOAD_URL.replace("IdValue", id);
-    let fileName = `${msgId}.png`;
 
-    const { updatedFileName } = await downloadExternalResource({
-      msgType,
+    return stringHtml = await ejs.renderFile("./templates/messages/message-4.ejs", {
       url,
-      fileName,
-    });
-    fileName = updatedFileName;
-    const urlLocal = path.join(STICKER_DIR, fileName);
-
-    const dimensions = sizeOf(path.join(fullExportPath, STICKER_DIR, fileName));
-    return stringHtml = await ejs.renderFile("./templates/msg-4.ejs", {
-      url: urlLocal,
-      fileName,
-      dirValue: STICKER_DIR,
-      width: dimensions.width,
-      height: dimensions.height,
-      msgId,
+      dir: STICKER_DIR,
+      fileName: resourcesInfo[url].fileName,
     });
   }
   // Link type
   else if (msgType === 6) {
-    const { title = "", description = "", href = "", thumb = "", } = message;
-    let fileName = `${msgId}.png`;
+    const { title = "", description = "", href = "", thumb = "", params } = message;
+    const mediaTitle = (JSON.parse(params)).mediaTitle;
 
-    const { updatedFileName } = await downloadExternalResource({
-      msgType,
-      url: thumb,
-      fileName,
-    });
-    fileName = updatedFileName;
-
-    return ejs.renderFile("./templates/msg-6.ejs", {
-      fileName,
-      url: href,
-      title: title,
+    return ejs.renderFile("./templates/messages/message-6.ejs", {
+      fullUrl: href.includes('http') ? href : `http://${href}`,
+      dir: IMAGE_DIR,
+      fileName: resourcesInfo[thumb].fileName,
+      title: mediaTitle,
       description: description,
-      dir: IMAGE_DIR
     });
   }
   // Gif
   else if (msgType === 7) {
     const { normalUrl: url } = message;
-    let fileName = `${msgId}.gif`;
 
-    const { updatedFileName } = await downloadExternalResource({
-      msgType,
+    return ejs.renderFile("./templates/messages/message-7.ejs", {
       url,
-      fileName,
-    });
-    fileName = updatedFileName;
-    const urlLocal = path.join(GIF_DIR, fileName);
-
-    return ejs.renderFile("./templates/msg-7.ejs", {
-      fileName,
-      url: urlLocal,
-      dir: GIF_DIR
+      dir: GIF_DIR,
+      fileName: resourcesInfo[url].fileName,
     });
   }
-  // // Location type
+  // Location type
   else if (msgType === 17) {
     const { desc, lat, lo } = message;
-    const iconName = "location.png";
     const urlGgMap = GOOGLE_MAP.replace("latValue", lat).replace("loValue", lo);
 
-    await downloadExternalResource({
-      msgType: 6,
-      url: LOCATION_ICON,
-      fileName: iconName,
-
-    });
-
-    return ejs.renderFile("./templates/msg-17.ejs", {
-      fileName: iconName,
+    return ejs.renderFile("./templates/messages/message-17.ejs", {
+      fileName: resourcesInfo[LOCATION_ICON].fileName,
       url: urlGgMap,
       desc,
       lat,
@@ -145,46 +89,41 @@ exports.htmlTemplate = async ({ msgType, msgId, message }) => {
   // File type
   else if (msgType === 19) {
     const { title = "", href = "", thumb = "" } = message;
-    let fileNameFile = title;
-    let fileNameImg = "";
 
-    const { updatedFileName, size } = await downloadExternalResource({
-      msgType,
+    return ejs.renderFile("./templates/messages/message-19.ejs", {
       url: href,
-      fileName: fileNameFile,
-    });
-    fileNameFile = updatedFileName;
-
-    if (thumb) {
-      const fileName = detectFileName(thumb);
-      const { updatedFileName } = await downloadExternalResource({
-        msgType: 6,
-        url: thumb,
-        fileName,
-      });
-      fileNameImg = updatedFileName;
-    } else {
-      const { extension, url } = determinateThumb(title);
-      fileNameImg = `${extension}.svg`;
-      const { updatedFileName } = await downloadExternalResource({ msgType: 6, url, fileName: fileNameImg });
-      fileNameImg = updatedFileName;
-    }
-    const urlLocal = path.join(FILE_DIR, fileNameFile);
-
-    return ejs.renderFile("./templates/msg-19.ejs", {
-      url: urlLocal,
       title,
-      size,
-      fileName: fileNameImg,
-      dir: IMAGE_DIR,
-      wrapImgClass: thumb ? '' : 'wrap_icon_file',
-      imgClass: thumb ? 'thumb' : 'icon_file'
+      thumbDir: IMAGE_DIR,
+      fileDir: FILE_DIR,
+      imgClass: thumb ? 'thumb' : 'img',
+      thumbName: resourcesInfo[resourcesInfo[href].thumb].fileName,
+      fileName: resourcesInfo[href].fileName,
+    });
+  }
+  // Add new member
+  else if (msgType === -4) {
+    return ejs.renderFile('./templates/messages/message--4.ejs', {
+      title: JSON.stringify(message),
+      time: convertTimeFormat(parseInt(sendDttm)),
+    });
+  }
+  // Create a new note
+  else if (msgType === -1909) {
+    return ejs.renderFile('./templates/messages/message--4.ejs', {
+      title: message['title'],
+      time: convertTimeFormat(parseInt(sendDttm)),
+    });
+  }
+  else if (msgType === 25) {
+    return ejs.renderFile('./templates/messages/message--4.ejs', {
+      title: message['description'],
+      time: convertTimeFormat(parseInt(sendDttm)),
     });
   }
   // Default
   else {
-    return ejs.renderFile("./templates/default.ejs", {
-      title: JSON.stringify(message),
+    return ejs.renderFile("./templates/messages/message-1.ejs", {
+      message: JSON.stringify(message),
     });
   }
 };

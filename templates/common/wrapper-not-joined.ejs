@@ -1,0 +1,16 @@
+<div class="message">
+  <div class="message__avatar">
+    <div class="message__avatar__icon" style="background-color: <%=color%>;">
+      <%= shortenName %>
+    </div>
+  </div>
+  <div class="message__content">
+    <div class="message__content__header">
+      <div class="username"><%= name %></div>
+      <div class="date"><%= time %></div>
+    </div>
+    <div class="message__content__body">
+      <%- msgBody %>
+    </div>
+  </div>
+</div>

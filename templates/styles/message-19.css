@@ -1,0 +1,51 @@
+.message-19::after {
+  content: "";
+  visibility: hidden;
+  height: 0;
+  clear: both;
+}
+
+.message-19__thumb {
+  float: left;
+  margin-right: 15px;
+}
+
+.message-19__link {
+  text-decoration: none;
+  color: black;
+  font-style: normal;
+}
+
+.message-19__title {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.message-19__description {
+  margin: 0;
+  color: #70777b;
+  word-break: break-word;
+}
+
+@media only screen and (min-width: 320px) and (max-width: 600px) {
+  .message-19__thumb__thumb {
+    width: 40px;
+  }
+
+  .message-19__thumb__img {
+    max-width: 50px;
+  }
+}
+
+@media only screen and (min-width: 601px) {
+  .message-19__thumb__thumb {
+    width: 50px;
+  }
+
+  .message-19__thumb__img {
+    max-width: 80px;
+  }
+}

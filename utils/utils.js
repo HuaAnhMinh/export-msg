@@ -1,6 +1,5 @@
 const path = require("path");
 const fs = require("fs");
-const { Transform } = require("stream");
 const crypto = require("crypto");
 
 const {
@@ -19,8 +18,9 @@ const {
   GIF_DIR,
   MP4_DIR,
   FILE_DIR,
-  CSS_DIR,
-  JS_DIR
+  STYLES_DIR,
+  JS_DIR,
+  RESOURCES
 } = require("./constants");
 
 
@@ -43,23 +43,29 @@ exports.createExportDataDir = () => {
   fs.mkdirSync(fullExportPath);
   fs.mkdirSync(path.join(fullExportPath, JS_DIR));
   fs.mkdirSync(path.join(fullExportPath, IMAGE_DIR));
-  fs.mkdirSync(path.join(fullExportPath, CSS_DIR));
+  fs.mkdirSync(path.join(fullExportPath, STYLES_DIR));
   fs.mkdirSync(path.join(fullExportPath, PHOTO_DIR));
   fs.mkdirSync(path.join(fullExportPath, MP3_DIR));
   fs.mkdirSync(path.join(fullExportPath, STICKER_DIR));
   fs.mkdirSync(path.join(fullExportPath, GIF_DIR));
   fs.mkdirSync(path.join(fullExportPath, MP4_DIR));
   fs.mkdirSync(path.join(fullExportPath, FILE_DIR));
+  fs.mkdirSync(path.join(fullExportPath, RESOURCES));
 };
 
-exports.writeToFile = (content, subDir, file) => {
-  const url = subDir ? path.join(fullExportPath, subDir, file) : path.join(fullExportPath, file)
-  let writeStream = fs.createWriteStream(url, {
-    flags: "a",
-  });
+exports.writeToFile = (content, subDir, file, isSync=false) => {
+  const url = subDir ? path.join(fullExportPath, subDir, file) : path.join(fullExportPath, file);
 
-  writeStream.write(content);
-  writeStream.end();
+  if (isSync) {
+    fs.appendFileSync(url, content);
+  }
+  else {
+    fs.appendFile(url, content, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
+  }
 }
 
 exports.detectFileName = (url) => {
@@ -82,8 +88,12 @@ const convertSizeOfFile = (size, i) => {
   return convertSizeOfFile(devidedResult, i + 1);
 };
 
-exports.isJoinedUserBefore = (peviousObj, currentObj) => {
-  if (peviousObj && currentObj.fromUid === peviousObj.fromUid) {
+exports.isJoinedUserBefore = (prevObj, currentObj) => {
+  if (prevObj && prevObj.hasOwnProperty('msgType') && prevObj.msgType === 25) {
+    return false;
+  }
+  
+  if (prevObj && currentObj.fromUid === prevObj.fromUid) {
     return true;
   }
   return false;
@@ -146,64 +156,49 @@ const genUniqueKey = (url, path) => {
 }
 exports.genUniqueKey = genUniqueKey;
 
-exports.downloadExternalResource = async ({ msgType, url, fileName }) => {
-  const protocol =
-    url.includes("http") && !url.includes("https")
-      ? require("http")
-      : require("https");
-  let subDir = "";
-  let size = 0;
+exports.copyRequiredResourceToDest = () => {
+  fs.createReadStream('./templates/common/error-placeholder.png')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'resources/error-placeholder.png')));
 
-  switch (msgType) {
-    case 2:
-      subDir += PHOTO_DIR;
-      break;
-    case 3:
-      subDir += MP3_DIR;
-      break;
-    case 4:
-      subDir += STICKER_DIR;
-      break;
-    case 6:
-      subDir += IMAGE_DIR;
-      break;
-    case 7:
-      subDir += GIF_DIR;
-      break;
-    case 18:
-      subDir += MP4_DIR;
-      break;
-    case 19:
-      subDir += FILE_DIR;
-      break;
+  fs.createReadStream('./templates/styles/message.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message.css')));
 
-    default:
-  }
+  fs.createReadStream('./templates/styles/message-1.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-1.css')));
 
-  return new Promise((resolve, __) => {
-    const existResource = downloadedResource[genUniqueKey(url, subDir)];
-    if (existResource) {
-      const { fileName, size } = existResource;
-      return resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) })
+  fs.createReadStream('./templates/styles/message-2.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-2.css')));
+
+  fs.createReadStream('./templates/styles/message-4.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-4.css')));
+
+  fs.createReadStream('./templates/styles/message-6.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-6.css')));
+
+  fs.createReadStream('./templates/styles/message-7.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-7.css')));
+
+  fs.createReadStream('./templates/styles/message-17.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-17.css')));
+
+  fs.createReadStream('./templates/styles/message-19.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message-19.css')));
+
+  fs.createReadStream('./templates/styles/message--4.css')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'styles/message--4.css')));
+
+  fs.createReadStream('./public/script.js')
+  .pipe(fs.createWriteStream(path.join(fullExportPath, 'js/script.js')));
+};
+
+exports.checkDownloadableContentExisted = (messages=[]) => {
+  for (let i = 0; i < messages.length; ++i) {
+    const msgType = messages[i].msgType;
+
+    if (msgType === 2 || msgType === 4 || msgType === 6 ||
+        msgType === 7 || msgType === 17 || msgType === 19) {
+      hasDownloadableContent = true;
+      break;
     }
-
-    protocol
-      .request(url, function (response) {
-        let data = new Transform();
-        response.on("data", function (chunk) {
-          data.push(chunk);
-          size += chunk.length;
-        });
-        response.on("end", function () {
-          const index = genUniqueKey(url, subDir);
-          downloadedResource[index] = { fileName, size }
-          fs.writeFileSync(
-            path.join(fullExportPath, subDir, fileName),
-            data.read()
-          );
-          resolve({ updatedFileName: fileName, size: convertSizeOfFile(size, 0) });
-        });
-      })
-      .end();
-  });
+  }
 };

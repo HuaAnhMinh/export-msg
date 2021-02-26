@@ -3,3 +3,8 @@
 package-lock.json
 Zalo Desktop
 output/**
+.idea
+publish
+.firebase
+temp
+.DS_Store
